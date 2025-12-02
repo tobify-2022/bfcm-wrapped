@@ -490,7 +490,7 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                 </div>
                 <div>
                   <div className={`text-2xl font-bold ${ColorTheme.platform.textBold}`}>
-                    81M+
+                    {'81M+'}
                   </div>
                   <div className="text-sm text-white/70">Consumers</div>
                   <div className={`text-xs ${ColorTheme.platform.accent} mt-1`}>Worldwide</div>
