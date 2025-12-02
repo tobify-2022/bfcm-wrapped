@@ -459,8 +459,8 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
           </div>
           </AnimatedSection>
 
-          {/* Shopify BFCM Stats (High Level) - Platform-Wide Stats */}
-          {/* Always show amazing Shopify BFCM 2025 performance stats */}
+          {/* Shopify BFCM 2025 Stats - Platform-Wide Stats */}
+          {/* ALWAYS DISPLAY - Official BFCM 2025 platform stats */}
           <AnimatedSection delay={700}>
             <div className="mb-12 p-8 bg-gradient-to-br from-slate-800/50 to-blue-900/50 rounded-2xl border-2 border-cyan-500/20 backdrop-blur-sm">
               <div className="flex items-center gap-2 mb-6 justify-center">
@@ -470,52 +470,39 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                 <QueryTooltip queryKey="shopifyBFCMStats">
                   <span></span>
                 </QueryTooltip>
-              </div>
-              {/* Always use official BFCM 2025 platform stats */}
-              {(() => {
-                const stats = data.shopifyBFCMStats || {
-                  total_gmv_processed: 14600000000,
-                  peak_gmv_per_minute: 5100000,
-                  peak_minute: '2025-11-28T12:01:00',
-                  total_orders: 0,
-                  total_shops: 94900,
-                };
-                
-                return (
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                    <div>
-                      <div className={`text-2xl font-bold ${ColorTheme.gmv.textBold}`}>
-                        {formatCurrency(stats.total_gmv_processed)}
-                      </div>
-                      <div className="text-sm text-white/70">Total GMV Processed</div>
-                      <div className={`text-xs ${ColorTheme.growth.text} mt-1`}>+27% YoY</div>
-                    </div>
-                    <div>
-                      <div className={`text-2xl font-bold ${ColorTheme.gmv.textBold}`}>
-                        {formatCurrency(stats.peak_gmv_per_minute)}
-                      </div>
-                      <div className="text-sm text-white/70">Peak GMV per Minute</div>
-                      <div className={`text-xs ${ColorTheme.platform.accent} mt-1`}>12:01 PM EST</div>
-                    </div>
-                    <div>
-                      <div className={`text-2xl font-bold ${ColorTheme.platform.textBold}`}>
-                        {stats.total_orders > 0 ? stats.total_orders.toLocaleString() : '81M+'}
-                      </div>
-                      <div className="text-sm text-white/70">{stats.total_orders > 0 ? 'Total Orders' : 'Consumers'}</div>
-                      {stats.total_orders === 0 && (
-                        <div className={`text-xs ${ColorTheme.platform.accent} mt-1`}>Worldwide</div>
-                      )}
-                    </div>
-                    <div>
-                      <div className={`text-2xl font-bold ${ColorTheme.platform.textBold}`}>
-                        {stats.total_shops.toLocaleString()}+
-                      </div>
-                      <div className="text-sm text-white/70">Merchants</div>
-                      <div className={`text-xs ${ColorTheme.platform.accent} mt-1`}>Best Day Ever</div>
-                    </div>
+        </div>
+
+              {/* Hardcoded official BFCM 2025 platform stats - ALWAYS DISPLAY */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div>
+                  <div className={`text-2xl font-bold ${ColorTheme.gmv.textBold}`}>
+                    {formatCurrency(14600000000)}
                   </div>
-                );
-              })()}
+                  <div className="text-sm text-white/70">Total GMV Processed</div>
+                  <div className={`text-xs ${ColorTheme.growth.text} mt-1`}>+27% YoY</div>
+                </div>
+                <div>
+                  <div className={`text-2xl font-bold ${ColorTheme.gmv.textBold}`}>
+                    {formatCurrency(5100000)}
+                  </div>
+                  <div className="text-sm text-white/70">Peak GMV per Minute</div>
+                  <div className={`text-xs ${ColorTheme.platform.accent} mt-1`}>12:01 PM EST</div>
+                </div>
+                <div>
+                  <div className={`text-2xl font-bold ${ColorTheme.platform.textBold}`}>
+                    81M+
+                  </div>
+                  <div className="text-sm text-white/70">Consumers</div>
+                  <div className={`text-xs ${ColorTheme.platform.accent} mt-1`}>Worldwide</div>
+                </div>
+                <div>
+                  <div className={`text-2xl font-bold ${ColorTheme.platform.textBold}`}>
+                    {94900.toLocaleString()}+
+                  </div>
+                  <div className="text-sm text-white/70">Merchants</div>
+                  <div className={`text-xs ${ColorTheme.platform.accent} mt-1`}>Best Day Ever</div>
+                </div>
+              </div>
             </div>
           </AnimatedSection>
 
