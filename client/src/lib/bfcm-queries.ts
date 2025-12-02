@@ -1380,14 +1380,16 @@ export async function getShopBreakdown(
       GROUP BY so.shop_id
     )
     SELECT 
-      shop_id,
-      CAST(NULL AS STRING) as shop_name,
-      total_orders,
-      total_gmv,
-      aov,
-      units_per_transaction
-    FROM shop_metrics
-    ORDER BY total_gmv DESC
+      sm.shop_id,
+      COALESCE(spc.name, CAST(sm.shop_id AS STRING)) as shop_name,
+      sm.total_orders,
+      sm.total_gmv,
+      sm.aov,
+      sm.units_per_transaction
+    FROM shop_metrics sm
+    LEFT JOIN \`shopify-dw.accounts_and_administration.shop_profile_current\` spc
+      ON CAST(sm.shop_id AS INT64) = spc.shop_id
+    ORDER BY sm.total_gmv DESC
   `;
   
   try {

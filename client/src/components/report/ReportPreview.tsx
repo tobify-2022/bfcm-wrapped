@@ -575,7 +575,7 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                 <table className="w-full border-collapse">
                   <thead>
                     <tr className="border-b-2 border-cyan-500/30">
-                      <th className="text-left p-3 font-semibold text-white">Shop ID</th>
+                      <th className="text-left p-3 font-semibold text-white">Store</th>
                       <th className="text-right p-3 font-semibold text-white">Orders</th>
                       <th className="text-right p-3 font-semibold text-white">GMV</th>
                       <th className="text-right p-3 font-semibold text-white">AOV</th>
@@ -585,7 +585,12 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                   <tbody>
                     {data.shopBreakdown.map((shop) => (
                       <tr key={shop.shop_id} className="border-b border-cyan-500/10 hover:bg-slate-800/30">
-                        <td className="p-3 font-mono text-sm text-white/90">{shop.shop_id}</td>
+                        <td className="p-3">
+                          <div className="font-semibold text-white">{shop.shop_name || `Shop ${shop.shop_id}`}</div>
+                          {shop.shop_name && (
+                            <div className="text-xs text-white/50 font-mono mt-0.5">{shop.shop_id}</div>
+                          )}
+                        </td>
                         <td className="p-3 text-right text-cyan-400">{shop.total_orders.toLocaleString()}</td>
                         <td className="p-3 text-right font-semibold text-pink-400">{formatCurrency(shop.total_gmv)}</td>
                         <td className="p-3 text-right text-purple-400">{formatCurrency(shop.aov)}</td>
