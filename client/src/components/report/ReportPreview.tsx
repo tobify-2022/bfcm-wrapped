@@ -460,38 +460,28 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
           </AnimatedSection>
 
           {/* Shopify BFCM Stats (High Level) - Platform-Wide Stats */}
-          {/* Always show BFCM 2025 stats - check if dates match BFCM 2025 period */}
-          {(() => {
-            // Check if dates match BFCM 2025 (Nov 28 - Dec 1, 2025)
-            const startDateMatch = data.startDate.startsWith('2025-11-28') || data.startDate === '2025-11-28';
-            const endDateMatch = data.endDate.startsWith('2025-12-01') || data.endDate === '2025-12-01';
-            const isBFCM2025 = startDateMatch && endDateMatch;
-            
-            // Always show if BFCM 2025 dates OR if stats are available
-            if (!isBFCM2025 && !data.shopifyBFCMStats) {
-              return null;
-            }
-            
-            // Use stats from query if available, otherwise use hardcoded BFCM 2025 stats
-            const stats = data.shopifyBFCMStats || {
-              total_gmv_processed: 14600000000,
-              peak_gmv_per_minute: 5100000,
-              peak_minute: '2025-11-28T12:01:00',
-              total_orders: 0,
-              total_shops: 94900,
-            };
-            
-            return (
-              <AnimatedSection delay={700}>
-                <div className="mb-12 p-8 bg-gradient-to-br from-slate-800/50 to-blue-900/50 rounded-2xl border-2 border-cyan-500/20 backdrop-blur-sm">
-                  <div className="flex items-center gap-2 mb-6 justify-center">
-                    <h2 className="text-2xl font-semibold bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
-                      Shopify BFCM 2025 Stats
-                    </h2>
-                    <QueryTooltip queryKey="shopifyBFCMStats">
-                      <span></span>
-                    </QueryTooltip>
-                  </div>
+          {/* Always show amazing Shopify BFCM 2025 performance stats */}
+          <AnimatedSection delay={700}>
+            <div className="mb-12 p-8 bg-gradient-to-br from-slate-800/50 to-blue-900/50 rounded-2xl border-2 border-cyan-500/20 backdrop-blur-sm">
+              <div className="flex items-center gap-2 mb-6 justify-center">
+                <h2 className="text-2xl font-semibold bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
+                  Shopify BFCM 2025 Stats
+                </h2>
+                <QueryTooltip queryKey="shopifyBFCMStats">
+                  <span></span>
+                </QueryTooltip>
+              </div>
+              {/* Always use official BFCM 2025 platform stats */}
+              {(() => {
+                const stats = data.shopifyBFCMStats || {
+                  total_gmv_processed: 14600000000,
+                  peak_gmv_per_minute: 5100000,
+                  peak_minute: '2025-11-28T12:01:00',
+                  total_orders: 0,
+                  total_shops: 94900,
+                };
+                
+                return (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                     <div>
                       <div className={`text-2xl font-bold ${ColorTheme.gmv.textBold}`}>
@@ -522,12 +512,12 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                       </div>
                       <div className="text-sm text-white/70">Merchants</div>
                       <div className={`text-xs ${ColorTheme.platform.accent} mt-1`}>Best Day Ever</div>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
-          </div>
-        </div>
-              </AnimatedSection>
-            );
-          })()}
+          </AnimatedSection>
 
           {/* Peak Performance - Enhanced */}
         {data.peakGMV && (
