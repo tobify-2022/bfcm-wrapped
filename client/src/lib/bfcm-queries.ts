@@ -32,6 +32,9 @@ export interface ProductPerformance {
   variant_title: string;
   units_sold: number;
   revenue: number;
+  product_id?: string;
+  variant_id?: string;
+  image_url?: string;
 }
 
 export interface ChannelPerformance {
@@ -271,10 +274,10 @@ export async function getCoreMetrics(
         TIMESTAMP('${startDate} 00:00:00') as start_date,
         TIMESTAMP('${endDate} 23:59:59') as end_date
     ),
-    orders AS (
-      SELECT DISTINCT
+    order_totals AS (
+      SELECT 
         otps.order_id,
-        otps.amount_presentment as order_amount
+        SUM(otps.amount_local) as order_amount
       FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
       CROSS JOIN sale_period sp
       -- shop_id is INT64 in BigQuery - compare directly (more efficient than casting)
@@ -287,12 +290,13 @@ export async function getCoreMetrics(
         AND otps.order_transaction_kind = 'capture'
         AND otps.order_transaction_status = 'success'
         AND NOT otps.is_test
+      GROUP BY otps.order_id
     )
     SELECT 
       COUNT(DISTINCT order_id) as total_orders,
       COALESCE(SUM(order_amount), 0) as total_gmv,
       COALESCE(AVG(order_amount), 0) as aov
-    FROM orders
+    FROM order_totals
   `;
 
   const shopIdDisplay = shopIdArray.length === 1 ? shopIdInts[0] : `${shopIdArray.length} shops`;
@@ -409,10 +413,10 @@ export function getCoreMetricsQuery(
         TIMESTAMP('${startDate} 00:00:00') as start_date,
         TIMESTAMP('${endDate} 23:59:59') as end_date
     ),
-    orders AS (
-      SELECT DISTINCT
+    order_totals AS (
+      SELECT 
         otps.order_id,
-        otps.amount_presentment as order_amount
+        SUM(otps.amount_local) as order_amount
       FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
       CROSS JOIN sale_period sp
       WHERE otps.shop_id IN (${shopIdList})
@@ -422,12 +426,13 @@ export function getCoreMetricsQuery(
         AND otps.order_transaction_kind = 'capture'
         AND otps.order_transaction_status = 'success'
         AND NOT otps.is_test
+      GROUP BY otps.order_id
     )
     SELECT 
       COUNT(DISTINCT order_id) as total_orders,
       COALESCE(SUM(order_amount), 0) as total_gmv,
       COALESCE(AVG(order_amount), 0) as aov
-    FROM orders
+    FROM order_totals
   `.trim();
 }
 
@@ -527,9 +532,9 @@ export function getReferrerDataQuery(
         TIMESTAMP('${endDate} 23:59:59') as end_date
     ),
     successful_orders AS (
-      SELECT DISTINCT
+      SELECT 
         otps.order_id,
-        otps.amount_presentment as order_amount
+        SUM(otps.amount_local) as order_amount
       FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
       CROSS JOIN sale_period sp
       WHERE otps.shop_id IN (${shopIdList})
@@ -539,6 +544,7 @@ export function getReferrerDataQuery(
         AND otps.order_transaction_status = 'success'
         AND NOT otps.is_test
         AND otps._extracted_at >= TIMESTAMP('${startDate}')
+      GROUP BY otps.order_id
     ),
     referrer_attribution AS (
       SELECT 
@@ -615,7 +621,7 @@ export async function getPeakGMV(
     minute_aggregates AS (
       SELECT 
         TIMESTAMP_TRUNC(otps.order_transaction_processed_at, MINUTE) as minute,
-        SUM(otps.amount_presentment) as gmv_per_minute
+        SUM(otps.amount_local) as gmv_per_minute
       FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
       CROSS JOIN sale_period sp
       -- shop_id is INT64 in BigQuery - compare directly (more efficient than casting)
@@ -691,6 +697,9 @@ export async function getTopProducts(
       SELECT 
         li.product_title,
         li.variant_title,
+        ANY_VALUE(CAST(li.product_id AS STRING)) as product_id,
+        ANY_VALUE(CAST(li.variant_id AS STRING)) as variant_id,
+        ANY_VALUE(li.image_url) as image_url,
         SUM(li.quantity) as units_sold,
         -- Use price_local * quantity for revenue (as per data-warehouse patterns)
         SUM(li.price_local * li.quantity) as revenue
@@ -705,6 +714,9 @@ export async function getTopProducts(
     SELECT 
       product_title,
       variant_title,
+      product_id,
+      variant_id,
+      image_url,
       units_sold,
       revenue
     FROM product_sales
@@ -717,8 +729,11 @@ export async function getTopProducts(
   const result = await quickAPI.queryBigQuery(query);
   
   return result.rows.map((row) => ({
-      product_title: String(row.product_title || 'Unknown Product'),
+    product_title: String(row.product_title || 'Unknown Product'),
     variant_title: String(row.variant_title || ''),
+    product_id: row.product_id ? String(row.product_id) : undefined,
+    variant_id: row.variant_id ? String(row.variant_id) : undefined,
+    image_url: row.image_url ? String(row.image_url) : undefined,
     units_sold: Number(row.units_sold || 0),
     revenue: Number(row.revenue || 0),
   }));
@@ -748,10 +763,10 @@ export async function getRetailMetrics(
         TIMESTAMP('${endDate} 23:59:59') as end_date
     ),
     successful_orders AS (
-      SELECT DISTINCT
+      SELECT 
         otps.order_id,
-        otps.amount_presentment as order_amount,
-        otps.is_pos
+        SUM(otps.amount_local) as order_amount,
+        MAX(otps.is_pos) as is_pos
       FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
       CROSS JOIN sale_period sp
       WHERE otps.shop_id IN (${shopIdList})
@@ -762,6 +777,7 @@ export async function getRetailMetrics(
         AND otps.order_transaction_status = 'success'
         AND NOT otps.is_test
         AND otps.is_pos = TRUE  -- Only POS/retail orders
+      GROUP BY otps.order_id
     ),
     retail_orders_with_location AS (
       SELECT 
@@ -897,9 +913,9 @@ export async function getCustomerInsights(
         TIMESTAMP('${endDate} 23:59:59') as end_date
     ),
     successful_orders AS (
-      SELECT DISTINCT
+      SELECT 
         otps.order_id,
-        otps.amount_presentment as order_amount
+        SUM(otps.amount_local) as order_amount
       FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
       CROSS JOIN sale_period sp
       -- shop_id is INT64 in BigQuery - compare directly (more efficient than casting)
@@ -912,6 +928,7 @@ export async function getCustomerInsights(
         AND otps.order_transaction_kind = 'capture'
         AND otps.order_transaction_status = 'success'
         AND NOT otps.is_test
+      GROUP BY otps.order_id
     ),
     order_customer_data AS (
       SELECT 
@@ -1043,9 +1060,9 @@ export async function getReferrerData(
         TIMESTAMP('${endDate} 23:59:59') as end_date
     ),
     successful_orders AS (
-      SELECT DISTINCT
+      SELECT 
         otps.order_id,
-        otps.amount_presentment as order_amount
+        SUM(otps.amount_local) as order_amount
       FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
       CROSS JOIN sale_period sp
       WHERE otps.shop_id IN (${shopIdList})
@@ -1055,6 +1072,7 @@ export async function getReferrerData(
         AND otps.order_transaction_status = 'success'
         AND NOT otps.is_test
         AND otps._extracted_at >= TIMESTAMP('${startDate}')
+      GROUP BY otps.order_id
     ),
     referrer_attribution AS (
       SELECT 
@@ -1165,9 +1183,9 @@ export async function getChannelPerformance(
         TIMESTAMP('${endDate2024} 23:59:59') as end_date
     ),
       successful_orders_2025 AS (
-      SELECT DISTINCT
+      SELECT 
         otps.order_id,
-        otps.amount_presentment as order_amount
+        SUM(otps.amount_local) as order_amount
       FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
       CROSS JOIN sale_period_2025 sp
       -- shop_id is INT64 in BigQuery - compare directly (more efficient than casting)
@@ -1180,11 +1198,12 @@ export async function getChannelPerformance(
         AND otps.order_transaction_kind = 'capture'
         AND otps.order_transaction_status = 'success'
         AND NOT otps.is_test
+      GROUP BY otps.order_id
     ),
     successful_orders_2024 AS (
-      SELECT DISTINCT
+      SELECT 
         otps.order_id,
-        otps.amount_presentment as order_amount
+        SUM(otps.amount_local) as order_amount
       FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
       CROSS JOIN sale_period_2024 sp
       -- shop_id is INT64 in BigQuery - compare directly (more efficient than casting)
@@ -1197,11 +1216,12 @@ export async function getChannelPerformance(
         AND otps.order_transaction_kind = 'capture'
         AND otps.order_transaction_status = 'success'
         AND NOT otps.is_test
+      GROUP BY otps.order_id
     ),
     orders_with_channels_2025 AS (
       SELECT 
         otps.order_id,
-        otps.amount_presentment as order_amount,
+        SUM(otps.amount_local) as order_amount,
         -- Use api_client_type and is_pos from order_transactions_payments_summary for channel detection
         CASE 
           WHEN otps.api_client_type = 'Retail' THEN 'pos'
@@ -1219,11 +1239,12 @@ export async function getChannelPerformance(
         AND otps.order_transaction_kind = 'capture'
         AND otps.order_transaction_status = 'success'
         AND NOT otps.is_test
+      GROUP BY otps.order_id, channel_type
     ),
     orders_with_channels_2024 AS (
       SELECT 
         otps.order_id,
-        otps.amount_presentment as order_amount,
+        SUM(otps.amount_local) as order_amount,
         -- Use api_client_type and is_pos from order_transactions_payments_summary for channel detection
         CASE 
           WHEN otps.api_client_type = 'Retail' THEN 'pos'
@@ -1241,6 +1262,7 @@ export async function getChannelPerformance(
         AND otps.order_transaction_kind = 'capture'
         AND otps.order_transaction_status = 'success'
         AND NOT otps.is_test
+      GROUP BY otps.order_id, channel_type
     ),
     channel_performance_2025 AS (
       SELECT 
@@ -1320,10 +1342,10 @@ export async function getShopBreakdown(
         TIMESTAMP('${endDate} 23:59:59') as end_date
     ),
     successful_orders AS (
-      SELECT DISTINCT
+      SELECT 
         otps.order_id,
         otps.shop_id,
-        otps.amount_presentment as order_amount
+        SUM(otps.amount_local) as order_amount
       FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
       CROSS JOIN sale_period sp
       WHERE otps.shop_id IN (${shopIdList})
@@ -1333,6 +1355,7 @@ export async function getShopBreakdown(
         AND otps.order_transaction_kind = 'capture'
         AND otps.order_transaction_status = 'success'
         AND NOT otps.is_test
+      GROUP BY otps.order_id, otps.shop_id
     ),
     order_units AS (
       SELECT 
@@ -1403,7 +1426,7 @@ export async function getDiscountMetrics(
     successful_orders AS (
       SELECT DISTINCT
         otps.order_id,
-        otps.amount_presentment as order_amount
+        SUM(otps.amount_local) as order_amount
       FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
       CROSS JOIN sale_period sp
       WHERE otps.shop_id IN (${shopIdList})
@@ -1515,20 +1538,21 @@ export async function getInternationalSales(
           TIMESTAMP('${startDate} 00:00:00') as start_date,
           TIMESTAMP('${endDate} 23:59:59') as end_date
       ),
-      successful_orders AS (
-        SELECT DISTINCT
-          otps.order_id,
-          otps.amount_presentment as order_amount
-        FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
-        CROSS JOIN sale_period sp
-        WHERE otps.shop_id IN (${shopIdList})
-          AND otps.order_transaction_processed_at >= sp.start_date
-          AND otps.order_transaction_processed_at <= sp.end_date
-          AND otps._extracted_at >= TIMESTAMP('${startDate}')
-          AND otps.order_transaction_kind = 'capture'
-          AND otps.order_transaction_status = 'success'
-          AND NOT otps.is_test
-      ),
+    successful_orders AS (
+      SELECT 
+        otps.order_id,
+        SUM(otps.amount_local) as order_amount
+      FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
+      CROSS JOIN sale_period sp
+      WHERE otps.shop_id IN (${shopIdList})
+        AND otps.order_transaction_processed_at >= sp.start_date
+        AND otps.order_transaction_processed_at <= sp.end_date
+        AND otps._extracted_at >= TIMESTAMP('${startDate}')
+        AND otps.order_transaction_kind = 'capture'
+        AND otps.order_transaction_status = 'success'
+        AND NOT otps.is_test
+      GROUP BY otps.order_id
+    ),
       order_countries AS (
         SELECT 
           o.order_id,
@@ -1666,7 +1690,7 @@ export async function getConversionMetrics(
     successful_orders AS (
       SELECT DISTINCT
         otps.order_id,
-        otps.amount_presentment as order_amount
+        SUM(otps.amount_local) as order_amount
       FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
       CROSS JOIN sale_period sp
       WHERE otps.shop_id IN (${shopIdList})

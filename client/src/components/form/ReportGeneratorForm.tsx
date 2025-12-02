@@ -17,6 +17,18 @@ import {
   getDiscountMetrics,
   getInternationalSales,
   getUnitsPerTransaction,
+  getCoreMetricsQuery,
+  getPeakGMVQuery,
+  getTopProductsQuery,
+  getChannelPerformanceQuery,
+  getRetailMetricsQuery,
+  getConversionMetricsQuery,
+  getCustomerInsightsQuery,
+  getShopifyBFCMStatsQuery,
+  getShopBreakdownQuery,
+  getDiscountMetricsQuery,
+  getInternationalSalesQuery,
+  getUnitsPerTransactionQuery,
   type CoreMetrics,
   type PeakGMV,
   type ProductPerformance,
@@ -198,85 +210,55 @@ export default function ReportGeneratorForm({ onGenerate, isGenerating }: Report
             isFutureDate: new Date(startDate) > new Date(),
           });
           
-          // Helper to generate query strings for tooltips
-          const generateCoreMetricsQuery = (shopIds: string[], start: string, end: string) => {
-            const shopIdList = shopIds.join(', ');
-            return `
-    WITH sale_period AS (
-      SELECT 
-        TIMESTAMP('${start} 00:00:00') as start_date,
-        TIMESTAMP('${end} 23:59:59') as end_date
-    ),
-    orders AS (
-      SELECT DISTINCT
-        otps.order_id,
-        otps.amount_presentment as order_amount
-      FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
-      CROSS JOIN sale_period sp
-      WHERE otps.shop_id IN (${shopIdList})
-        AND otps.order_transaction_processed_at >= sp.start_date
-        AND otps.order_transaction_processed_at <= sp.end_date
-        AND otps.order_transaction_kind = 'capture'
-        AND otps.order_transaction_status = 'success'
-        AND NOT otps.is_test
-    )
-    SELECT 
-      COUNT(DISTINCT order_id) as total_orders,
-      COALESCE(SUM(order_amount), 0) as total_gmv,
-      COALESCE(AVG(order_amount), 0) as aov
-    FROM orders
-  `.trim();
-          };
-          
           // Define all queries with labels and query builders for progress tracking
           const queries = [
             { 
               label: 'Core Metrics 2025', 
               key: 'metrics2025',
               fn: () => getCoreMetrics(finalShopIds, startDate, endDate),
-              queryFn: () => generateCoreMetricsQuery(finalShopIds, startDate, endDate)
+              queryFn: () => getCoreMetricsQuery(finalShopIds, startDate, endDate)
             },
             { 
               label: 'Core Metrics 2024', 
               key: 'metrics2024',
               fn: () => getCoreMetrics(finalShopIds, startDate2024, endDate2024),
-              queryFn: () => generateCoreMetricsQuery(finalShopIds, startDate2024, endDate2024)
+              queryFn: () => getCoreMetricsQuery(finalShopIds, startDate2024, endDate2024)
             },
             { 
               label: 'Peak GMV', 
               key: 'peakGMV',
               fn: () => getPeakGMV(finalShopIds, startDate, endDate),
-              queryFn: () => `-- Peak GMV query (see getPeakGMV function)`
+              queryFn: () => getPeakGMVQuery(finalShopIds, startDate, endDate)
             },
             { 
               label: 'Top Products', 
               key: 'topProducts',
               fn: () => getTopProducts(finalShopIds, startDate, endDate),
-              queryFn: () => `-- Top Products query (see getTopProducts function)`
+              queryFn: () => getTopProductsQuery(finalShopIds, startDate, endDate)
             },
             { 
               label: 'Channel Performance', 
               key: 'channelPerformance',
               fn: () => getChannelPerformance(finalShopIds, startDate, endDate, startDate2024, endDate2024),
-              queryFn: () => `-- Channel Performance query (see getChannelPerformance function)`
+              queryFn: () => getChannelPerformanceQuery(finalShopIds, startDate, endDate, startDate2024, endDate2024)
             },
             { 
               label: 'Retail Metrics', 
               key: 'retailMetrics',
               fn: () => getRetailMetrics(finalShopIds, startDate, endDate),
-              queryFn: () => `-- Retail Metrics query (see getRetailMetrics function)`
+              queryFn: () => getRetailMetricsQuery(finalShopIds, startDate, endDate)
             },
             { 
               label: 'Conversion Metrics', 
               key: 'conversionMetrics',
               fn: () => getConversionMetrics(finalShopIds, startDate, endDate),
-              queryFn: () => `-- Conversion Metrics query (see getConversionMetrics function)`
+              queryFn: () => getConversionMetricsQuery(finalShopIds, startDate, endDate)
             },
             { 
               label: 'Customer Insights', 
               key: 'customerInsights',
               fn: () => getCustomerInsights(finalShopIds, startDate, endDate),
-              queryFn: () => `-- Customer Insights query (see getCustomerInsights function)`
+              queryFn: () => getCustomerInsightsQuery(finalShopIds, startDate, endDate)
             },
             { 
               label: 'Referrer Data', 
@@ -288,31 +270,31 @@ export default function ReportGeneratorForm({ onGenerate, isGenerating }: Report
               label: 'Shopify Stats', 
               key: 'shopifyBFCMStats',
               fn: () => getShopifyBFCMStats(startDate, endDate),
-              queryFn: () => `-- Shopify Stats query (see getShopifyBFCMStats function)`
+              queryFn: () => getShopifyBFCMStatsQuery(startDate, endDate)
             },
             { 
               label: 'Shop Breakdown', 
               key: 'shopBreakdown',
               fn: () => getShopBreakdown(finalShopIds, startDate, endDate),
-              queryFn: () => `-- Shop Breakdown query (see getShopBreakdown function)`
+              queryFn: () => getShopBreakdownQuery(finalShopIds, startDate, endDate)
             },
             { 
               label: 'Discount Metrics', 
               key: 'discountMetrics',
               fn: () => getDiscountMetrics(finalShopIds, startDate, endDate),
-              queryFn: () => `-- Discount Metrics query (see getDiscountMetrics function)`
+              queryFn: () => getDiscountMetricsQuery(finalShopIds, startDate, endDate)
             },
             { 
               label: 'International Sales', 
               key: 'internationalSales',
               fn: () => getInternationalSales(finalShopIds, startDate, endDate),
-              queryFn: () => `-- International Sales query (see getInternationalSales function)`
+              queryFn: () => getInternationalSalesQuery(finalShopIds, startDate, endDate)
             },
             { 
               label: 'Units Per Transaction', 
               key: 'unitsPerTransaction',
               fn: () => getUnitsPerTransaction(finalShopIds, startDate, endDate),
-              queryFn: () => `-- Units Per Transaction query (see getUnitsPerTransaction function)`
+              queryFn: () => getUnitsPerTransactionQuery(finalShopIds, startDate, endDate)
             },
           ];
           
