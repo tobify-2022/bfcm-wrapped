@@ -720,7 +720,7 @@ export async function getTopProducts(
         li.variant_title,
         ANY_VALUE(CAST(li.product_id AS STRING)) as product_id,
         ANY_VALUE(CAST(li.variant_id AS STRING)) as variant_id,
-        ANY_VALUE(li.image_url) as image_url,
+        NULL as image_url,
         SUM(li.quantity) as units_sold,
         -- Use price_local * quantity for revenue (as per data-warehouse patterns)
         SUM(li.price_local * li.quantity) as revenue
@@ -805,13 +805,10 @@ export async function getRetailMetrics(
         o.order_id,
         o.location_id,
         so.order_amount,
-        -- Get location name from logistics.locations_history (per Data Portal MCP findings)
-        l.name as location_name
+        -- Location name not available due to policy tag restrictions - use location_id instead
+        CAST(o.location_id AS STRING) as location_name
       FROM \`shopify-dw.merchant_sales.orders\` o
       INNER JOIN successful_orders so ON o.order_id = so.order_id
-      LEFT JOIN \`shopify-dw.logistics.locations_history\` l
-        ON o.location_id = l.location_id
-        AND l.valid_to IS NULL  -- Get current location records only
       WHERE o.shop_id IN (${shopIdList})
         AND NOT o.is_deleted
         AND NOT o.is_cancelled
@@ -971,20 +968,32 @@ export async function getCustomerInsights(
         ON o.customer_id = c.customer_id
         AND c.is_current = TRUE
         AND c.valid_to IS NULL
-      -- Join to customer_email_addresses_history for email (current records only)
-      LEFT JOIN \`shopify-dw.buyer_activity.customer_email_addresses_history\` cea
-        ON o.customer_id = cea.customer_id
-        AND cea.is_current = TRUE
-        AND cea.valid_to IS NULL
-        AND NOT cea.is_deleted
-        AND NOT cea.is_hard_deleted
-        -- Get the most recent email if multiple exist
-        QUALIFY ROW_NUMBER() OVER (PARTITION BY cea.customer_id ORDER BY cea.valid_from DESC) = 1
       -- shop_id is INT64 in BigQuery - compare directly
       WHERE o.shop_id IN (${shopIdList})
         AND NOT o.is_deleted
         AND NOT o.is_cancelled
         AND o.is_test = FALSE
+    ),
+    customer_emails AS (
+      SELECT 
+        ocd.order_id,
+        ocd.customer_id,
+        cea.email_address as customer_email
+      FROM order_customer_data ocd
+      LEFT JOIN \`shopify-dw.buyer_activity.customer_email_addresses_history\` cea
+        ON ocd.customer_id = cea.customer_id
+        AND cea.is_current = TRUE
+        AND cea.valid_to IS NULL
+        AND NOT cea.is_deleted
+        AND NOT cea.is_hard_deleted
+      QUALIFY ROW_NUMBER() OVER (PARTITION BY ocd.customer_id ORDER BY cea.valid_from DESC) = 1
+    ),
+    order_customer_data_with_email AS (
+      SELECT 
+        ocd.*,
+        ce.customer_email
+      FROM order_customer_data ocd
+      LEFT JOIN customer_emails ce ON ocd.order_id = ce.order_id AND ocd.customer_id = ce.customer_id
     ),
     customer_totals AS (
       SELECT 
@@ -993,7 +1002,7 @@ export async function getCustomerInsights(
         CONCAT(COALESCE(customer_first_name, ''), ' ', COALESCE(customer_last_name, '')) as customer_name,
         SUM(order_amount) as total_spend,
         COUNT(DISTINCT order_id) as order_count
-      FROM order_customer_data
+      FROM order_customer_data_with_email
       WHERE customer_id IS NOT NULL
       GROUP BY customer_id, customer_email, customer_first_name, customer_last_name
     ),
@@ -1011,7 +1020,7 @@ export async function getCustomerInsights(
       SELECT 
         COUNT(DISTINCT CASE WHEN is_first_order THEN customer_id END) as new_customers,
         COUNT(DISTINCT CASE WHEN NOT is_first_order THEN customer_id END) as returning_customers
-      FROM order_customer_data
+      FROM order_customer_data_with_email
       WHERE customer_id IS NOT NULL
     ),
     shop_pay_stats AS (
@@ -1504,7 +1513,7 @@ export async function getDiscountMetrics(
         TIMESTAMP('${endDate} 23:59:59') as end_date
     ),
     successful_orders AS (
-      SELECT DISTINCT
+      SELECT 
         otps.order_id,
         SUM(otps.amount_local) as order_amount
       FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
@@ -1516,6 +1525,7 @@ export async function getDiscountMetrics(
         AND otps.order_transaction_kind = 'capture'
         AND otps.order_transaction_status = 'success'
         AND NOT otps.is_test
+      GROUP BY otps.order_id
     ),
     line_item_discounts AS (
       SELECT 
@@ -1768,7 +1778,7 @@ export async function getConversionMetrics(
         TIMESTAMP('${endDate} 23:59:59') as end_date
     ),
     successful_orders AS (
-      SELECT DISTINCT
+      SELECT 
         otps.order_id,
         SUM(otps.amount_local) as order_amount
       FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
@@ -1780,6 +1790,7 @@ export async function getConversionMetrics(
         AND otps.order_transaction_kind = 'capture'
         AND otps.order_transaction_status = 'success'
         AND NOT otps.is_test
+      GROUP BY otps.order_id
     ),
     order_details AS (
       SELECT 
