@@ -350,6 +350,12 @@ GROUP BY c.email, c.first_name, c.last_name
 ### ✅ Test 12: Referrer Data (Account Level - All Shops)
 **Status**: ✅ PASSED - Data available
 **Query**: Check for referrer/UTM data
+**Results**:
+- Top Referrer: Google (search) - 6,245 orders, $614,318.92 GMV
+- Second: Direct - 5,454 orders, $553,941.11 GMV
+- Third: Klaviyo (email) - 3,856 orders, $375,292.41 GMV
+- Successfully returns top referrers with orders and GMV
+
 **Findings**:
 - Referrer data available in `shopify-dw.buyer_activity.attributed_sessions_history`
 - Fields available: `referrer`, `referrer_url`, `referring_channel`, `referring_category`, `utm_source`, `utm_medium`, `utm_campaign`
