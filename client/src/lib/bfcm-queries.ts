@@ -71,6 +71,9 @@ export interface CustomerInsights {
   top_customer_orders: number;
   new_customers: number;
   returning_customers: number;
+  shop_pay_orders?: number;
+  shop_pay_pct?: number;
+  total_customers?: number;
 }
 
 export interface ReferrerData {
@@ -1010,6 +1013,20 @@ export async function getCustomerInsights(
         COUNT(DISTINCT CASE WHEN NOT is_first_order THEN customer_id END) as returning_customers
       FROM order_customer_data
       WHERE customer_id IS NOT NULL
+    ),
+    shop_pay_stats AS (
+      SELECT 
+        COUNT(DISTINCT CASE WHEN otps.payment_gateway_names LIKE '%shop_pay%' OR otps.payment_gateway_names LIKE '%Shop Pay%' THEN otps.order_id END) as shop_pay_orders,
+        COUNT(DISTINCT otps.order_id) as total_orders
+      FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
+      CROSS JOIN sale_period sp
+      WHERE otps.shop_id IN (${shopIdList})
+        AND otps.order_transaction_processed_at >= sp.start_date
+        AND otps.order_transaction_processed_at <= sp.end_date
+        AND otps._extracted_at >= TIMESTAMP('${startDate}')
+        AND otps.order_transaction_kind = 'capture'
+        AND otps.order_transaction_status = 'success'
+        AND NOT otps.is_test
     )
     SELECT 
       COALESCE(tc.customer_email, '') as top_customer_email,
@@ -1017,10 +1034,17 @@ export async function getCustomerInsights(
       COALESCE(tc.total_spend, 0) as top_customer_spend,
       COALESCE(tc.order_count, 0) as top_customer_orders,
       COALESCE(cc.new_customers, 0) as new_customers,
-      COALESCE(cc.returning_customers, 0) as returning_customers
+      COALESCE(cc.returning_customers, 0) as returning_customers,
+      COALESCE(sps.shop_pay_orders, 0) as shop_pay_orders,
+      CASE 
+        WHEN sps.total_orders > 0 THEN (COALESCE(sps.shop_pay_orders, 0) / sps.total_orders) * 100
+        ELSE 0
+      END as shop_pay_pct,
+      (cc.new_customers + cc.returning_customers) as total_customers
     FROM customer_counts cc
     CROSS JOIN (SELECT 1 as dummy) d
     LEFT JOIN top_customer tc ON 1=1
+    CROSS JOIN shop_pay_stats sps
   `;
 
   try {
@@ -1034,6 +1058,9 @@ export async function getCustomerInsights(
         top_customer_orders: 0,
         new_customers: 0,
         returning_customers: 0,
+        shop_pay_orders: undefined,
+        shop_pay_pct: undefined,
+        total_customers: undefined,
       };
     }
 
@@ -1045,6 +1072,9 @@ export async function getCustomerInsights(
       top_customer_orders: Number(row.top_customer_orders || 0),
       new_customers: Number(row.new_customers || 0),
       returning_customers: Number(row.returning_customers || 0),
+      shop_pay_orders: row.shop_pay_orders ? Number(row.shop_pay_orders) : undefined,
+      shop_pay_pct: row.shop_pay_pct !== undefined ? Number(row.shop_pay_pct) : undefined,
+      total_customers: row.total_customers ? Number(row.total_customers) : undefined,
     };
   } catch (error) {
     console.error('Error fetching customer insights:', error);

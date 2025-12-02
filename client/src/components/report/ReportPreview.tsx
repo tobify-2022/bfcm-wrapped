@@ -11,6 +11,7 @@ import {
   getTopCustomerContext,
   getInternationalContext
 } from '@/lib/contextual-copy';
+import { getCountryFlag, formatCountryName } from '@/lib/country-utils';
 import Badge from './Badge';
 import Confetti from './Confetti';
 import AnimatedSection from './AnimatedSection';
@@ -311,8 +312,99 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
             <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
               Your BFCM 2025 by the Numbers
             </h2>
+            
+            {/* YoY Comparison Visualization */}
+            {data.metrics2024.total_gmv > 0 && (
+              <div className="mb-8 p-6 bg-gradient-to-br from-slate-800/50 to-blue-900/50 rounded-2xl border-2 border-cyan-500/20 backdrop-blur-sm">
+                <h3 className="text-xl font-semibold mb-4 text-center text-white">Year-over-Year Growth</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-white/70">GMV</span>
+                      <span className={`text-sm font-semibold ${yoyGMVChange >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
+                        {formatPercent(yoyGMVChange)}
+                      </span>
+                    </div>
+                    <div className="flex items-end gap-2 h-24">
+                      <div className="flex-1 flex flex-col items-center">
+                        <div className="text-xs text-white/60 mb-1">2024</div>
+                        <div 
+                          className="w-full bg-gradient-to-t from-purple-500/40 to-purple-400/60 rounded-t transition-all duration-1000"
+                          style={{ height: '40%' }}
+                        ></div>
+                        <div className="text-xs text-white/80 mt-1 font-semibold">{formatCurrency(data.metrics2024.total_gmv / 1000)}K</div>
+                      </div>
+                      <div className="flex-1 flex flex-col items-center">
+                        <div className="text-xs text-white/60 mb-1">2025</div>
+                        <div 
+                          className="w-full bg-gradient-to-t from-pink-500/60 to-pink-400/80 rounded-t transition-all duration-1000"
+                          style={{ height: `${Math.min((data.metrics2025.total_gmv / data.metrics2024.total_gmv) * 40, 100)}%` }}
+                        ></div>
+                        <div className="text-xs text-white/80 mt-1 font-semibold">{formatCurrency(data.metrics2025.total_gmv / 1000)}K</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-white/70">Orders</span>
+                      <span className={`text-sm font-semibold ${yoyOrdersChange >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
+                        {formatPercent(yoyOrdersChange)}
+                      </span>
+                    </div>
+                    <div className="flex items-end gap-2 h-24">
+                      <div className="flex-1 flex flex-col items-center">
+                        <div className="text-xs text-white/60 mb-1">2024</div>
+                        <div 
+                          className="w-full bg-gradient-to-t from-blue-500/40 to-blue-400/60 rounded-t transition-all duration-1000"
+                          style={{ height: '40%' }}
+                        ></div>
+                        <div className="text-xs text-white/80 mt-1 font-semibold">{data.metrics2024.total_orders.toLocaleString()}</div>
+                      </div>
+                      <div className="flex-1 flex flex-col items-center">
+                        <div className="text-xs text-white/60 mb-1">2025</div>
+                        <div 
+                          className="w-full bg-gradient-to-t from-cyan-500/60 to-cyan-400/80 rounded-t transition-all duration-1000"
+                          style={{ height: `${Math.min((data.metrics2025.total_orders / data.metrics2024.total_orders) * 40, 100)}%` }}
+                        ></div>
+                        <div className="text-xs text-white/80 mt-1 font-semibold">{data.metrics2025.total_orders.toLocaleString()}</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-white/70">AOV</span>
+                      <span className={`text-sm font-semibold ${yoyAOVChange >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
+                        {formatPercent(yoyAOVChange)}
+                      </span>
+                    </div>
+                    <div className="flex items-end gap-2 h-24">
+                      <div className="flex-1 flex flex-col items-center">
+                        <div className="text-xs text-white/60 mb-1">2024</div>
+                        <div 
+                          className="w-full bg-gradient-to-t from-indigo-500/40 to-indigo-400/60 rounded-t transition-all duration-1000"
+                          style={{ height: '40%' }}
+                        ></div>
+                        <div className="text-xs text-white/80 mt-1 font-semibold">${data.metrics2024.aov.toFixed(0)}</div>
+                      </div>
+                      <div className="flex-1 flex flex-col items-center">
+                        <div className="text-xs text-white/60 mb-1">2025</div>
+                        <div 
+                          className="w-full bg-gradient-to-t from-purple-500/60 to-purple-400/80 rounded-t transition-all duration-1000"
+                          style={{ height: `${Math.min((data.metrics2025.aov / data.metrics2024.aov) * 40, 100)}%` }}
+                        ></div>
+                        <div className="text-xs text-white/80 mt-1 font-semibold">${data.metrics2025.aov.toFixed(0)}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="bg-gradient-to-br from-pink-500/20 to-purple-500/20 rounded-2xl p-8 border-2 border-pink-500/30 backdrop-blur-sm">
+              <div className="bg-gradient-to-br from-pink-500/20 to-purple-500/20 rounded-2xl p-8 border-2 border-pink-500/30 backdrop-blur-sm relative overflow-hidden">
+                {yoyGMVChange > 0 && (
+                  <div className="absolute top-4 right-4 text-3xl opacity-20">📈</div>
+                )}
                 <div className="text-sm text-white/70 mb-2 uppercase tracking-wide">Total Sales</div>
                 <div className="text-4xl font-bold text-pink-400 mb-3">
                   {formatCurrency(data.metrics2025.total_gmv)}
@@ -327,7 +419,10 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-2xl p-8 border-2 border-cyan-500/30 backdrop-blur-sm">
+              <div className="bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-2xl p-8 border-2 border-cyan-500/30 backdrop-blur-sm relative overflow-hidden">
+                {yoyOrdersChange > 0 && (
+                  <div className="absolute top-4 right-4 text-3xl opacity-20">📦</div>
+                )}
                 <div className="text-sm text-white/70 mb-2 uppercase tracking-wide">Total Orders</div>
                 <div className="text-4xl font-bold text-cyan-400 mb-3">
                   {data.metrics2025.total_orders.toLocaleString()}
@@ -342,7 +437,10 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl p-8 border-2 border-purple-500/30 backdrop-blur-sm">
+              <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl p-8 border-2 border-purple-500/30 backdrop-blur-sm relative overflow-hidden">
+                {yoyAOVChange > 0 && (
+                  <div className="absolute top-4 right-4 text-3xl opacity-20">💰</div>
+                )}
                 <div className="text-sm text-white/70 mb-2 uppercase tracking-wide">Average Order Value</div>
                 <div className="text-4xl font-bold text-purple-400 mb-3">
                   {formatCurrency(data.metrics2025.aov)}
@@ -468,7 +566,7 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
               <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
                 Your Customer Story
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                 <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl p-8 border-2 border-purple-500/30 backdrop-blur-sm">
                   <div className="text-sm text-white/70 mb-2 uppercase tracking-wide">Top Customer</div>
                   <div className="text-2xl font-bold text-pink-400 mb-2">
@@ -480,15 +578,81 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                 </div>
                 <div className="bg-gradient-to-br from-pink-500/20 to-cyan-500/20 rounded-2xl p-8 border-2 border-pink-500/30 backdrop-blur-sm">
                   <div className="text-sm text-white/70 mb-2 uppercase tracking-wide">Customer Mix</div>
-                  <div className="text-2xl font-bold text-pink-400 mb-2">
-                    {data.customerInsights.new_customers.toLocaleString()} new
+                  <div className="flex items-center gap-4 mb-3">
+                    <div className="flex-1">
+                      <div className="text-2xl font-bold text-pink-400 mb-1">
+                        {data.customerInsights.new_customers.toLocaleString()}
+                      </div>
+                      <div className="text-xs text-white/70">New Customers</div>
+                    </div>
+                    <div className="w-px h-12 bg-white/20"></div>
+                    <div className="flex-1">
+                      <div className="text-2xl font-bold text-cyan-400 mb-1">
+                        {data.customerInsights.returning_customers.toLocaleString()}
+                      </div>
+                      <div className="text-xs text-white/70">Returning</div>
+                    </div>
                   </div>
-                  <div className="text-xl font-semibold text-cyan-400 mb-2">
-                    {data.customerInsights.returning_customers.toLocaleString()} returning
-                  </div>
-                  <div className="text-sm text-white/80 italic">
+                  {data.customerInsights.new_customers + data.customerInsights.returning_customers > 0 && (
+                    <div className="mt-4">
+                      <div className="flex items-center justify-between text-xs text-white/70 mb-2">
+                        <span>New</span>
+                        <span>Returning</span>
+                      </div>
+                      <div className="w-full bg-white/10 rounded-full h-3 overflow-hidden">
+                        <div className="flex h-full">
+                          <div 
+                            className="bg-gradient-to-r from-pink-500 to-pink-400"
+                            style={{ 
+                              width: `${((data.customerInsights.new_customers / (data.customerInsights.new_customers + data.customerInsights.returning_customers)) * 100)}%` 
+                            }}
+                          ></div>
+                          <div 
+                            className="bg-gradient-to-r from-cyan-500 to-cyan-400"
+                            style={{ 
+                              width: `${((data.customerInsights.returning_customers / (data.customerInsights.new_customers + data.customerInsights.returning_customers)) * 100)}%` 
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between text-xs mt-2">
+                        <span className="text-pink-400 font-semibold">
+                          {((data.customerInsights.new_customers / (data.customerInsights.new_customers + data.customerInsights.returning_customers)) * 100).toFixed(1)}%
+                        </span>
+                        <span className="text-cyan-400 font-semibold">
+                          {((data.customerInsights.returning_customers / (data.customerInsights.new_customers + data.customerInsights.returning_customers)) * 100).toFixed(1)}%
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  <div className="text-sm text-white/80 italic mt-3">
                     {getCustomerContext(data)}
                   </div>
+                </div>
+                <div className="bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-2xl p-8 border-2 border-cyan-500/30 backdrop-blur-sm">
+                  <div className="text-sm text-white/70 mb-2 uppercase tracking-wide">Shop Pay</div>
+                  {data.customerInsights.shop_pay_pct !== undefined && data.customerInsights.shop_pay_pct > 0 ? (
+                    <>
+                      <div className="text-2xl font-bold text-cyan-400 mb-2">
+                        {data.customerInsights.shop_pay_pct.toFixed(1)}%
+                      </div>
+                      <div className="text-sm text-white/80 mb-3">
+                        of orders used Shop Pay
+                      </div>
+                      {data.customerInsights.shop_pay_orders && (
+                        <div className="text-lg font-semibold text-white/90">
+                          {data.customerInsights.shop_pay_orders.toLocaleString()} orders
+                        </div>
+                      )}
+                      <div className="text-xs text-cyan-300 mt-2">
+                        Platform average: 32%
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-base text-white/70 italic">
+                      Shop Pay data not available
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -733,16 +897,17 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
             <div className="space-y-2">
               <h3 className="text-lg font-semibold mb-2 text-white">Top Countries by GMV</h3>
               {data.internationalSales.top_countries.map((country, index) => (
-                <div key={country.country} className="flex justify-between items-center p-3 bg-gradient-to-r from-slate-800/50 to-blue-900/50 rounded-md border border-cyan-500/20 backdrop-blur-sm">
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-500/30 to-cyan-500/30 flex items-center justify-center font-bold text-pink-400 text-xs border border-pink-500/50">
+                <div key={country.country} className="flex justify-between items-center p-4 bg-gradient-to-r from-slate-800/50 to-blue-900/50 rounded-lg border border-cyan-500/20 backdrop-blur-sm hover:border-cyan-500/40 transition-all">
+                  <div className="flex items-center gap-4">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500/30 to-cyan-500/30 flex items-center justify-center font-bold text-pink-400 text-sm border border-pink-500/50">
                       {index + 1}
                     </div>
-                    <div className="font-medium text-white">{country.country}</div>
+                    <div className="text-2xl">{getCountryFlag(country.country)}</div>
+                    <div className="font-semibold text-white text-lg">{formatCountryName(country.country)}</div>
                   </div>
                   <div className="text-right">
-                    <div className="font-semibold text-cyan-400">{formatCurrency(country.gmv)}</div>
-                    <div className="text-xs text-white/70">{country.orders} orders</div>
+                    <div className="font-bold text-xl text-cyan-400">{formatCurrency(country.gmv)}</div>
+                    <div className="text-sm text-white/70 font-medium">{country.orders.toLocaleString()} orders</div>
                   </div>
                 </div>
               ))}
