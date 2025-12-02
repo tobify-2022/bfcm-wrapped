@@ -7,13 +7,17 @@ import { ReportData } from '@/pages/Home';
 import { getPeakHourContext } from './commerce-personality';
 
 /**
- * Platform-wide stats for contextualization
+ * Platform-wide stats for contextualization - BFCM 2025
  */
 const PLATFORM_STATS = {
-  totalMerchants: 67000,
-  totalCustomers: 76000000,
-  peakGMVPerMinute: 4600000,
-  totalGMV: 46000000000, // $46B estimate
+  totalMerchants: 94900, // Merchants who had their best day ever
+  totalCustomers: 81000000, // 81+ million consumers
+  peakGMVPerMinute: 5100000, // $5.1M per minute at 12:01 PM EST
+  totalGMV: 14600000000, // $14.6B global sales
+  crossBorderPct: 16, // 16% cross-border orders
+  shopPayOrdersPct: 32, // 32% of orders via Shop Pay
+  shopPayYoY: 39, // 39% YoY increase in Shop Pay sales
+  averageCart: 114.70, // $114.70 average cart price
 };
 
 /**
@@ -22,9 +26,9 @@ const PLATFORM_STATS = {
 export function getGMVContext(gmv: number): string {
   const percentage = (gmv / PLATFORM_STATS.totalGMV) * 100;
   if (percentage > 0.01) {
-    return `You were part of ${PLATFORM_STATS.totalMerchants.toLocaleString()}+ merchants who had their best day ever`;
+    return `You were part of ${PLATFORM_STATS.totalMerchants.toLocaleString()}+ merchants who had their best day ever on Shopify`;
   }
-  return `You were part of something massive—${PLATFORM_STATS.totalCustomers.toLocaleString()}+ global customers shopped during BFCM`;
+  return `You were part of something massive—${PLATFORM_STATS.totalCustomers.toLocaleString()}+ consumers worldwide bought from Shopify-powered brands`;
 }
 
 /**
@@ -36,7 +40,9 @@ export function getPeakGMVContext(peakGMV: number, peakMinute: string): string {
   const context = getPeakHourContext(peakMinute);
   
   if (percentage > 1) {
-    return `Your peak of ${(peakGMV / 1000).toFixed(0)}K/min was ${context}—you were part of the ${(platformPeak / 1000000).toFixed(1)}M/min platform peak!`;
+    return `Your peak of ${(peakGMV / 1000).toFixed(0)}K/min was ${context}—you were part of the $${(platformPeak / 1000000).toFixed(1)}M/min platform peak at 12:01 PM EST!`;
+  } else if (percentage > 0.1) {
+    return `Your peak of ${(peakGMV / 1000).toFixed(0)}K/min happened ${context}—contributing to the $${(platformPeak / 1000000).toFixed(1)}M/min platform peak`;
   }
   return `Your peak of ${(peakGMV / 1000).toFixed(0)}K/min happened ${context}`;
 }

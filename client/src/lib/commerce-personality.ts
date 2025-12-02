@@ -264,6 +264,13 @@ export function detectCommercePersonality(data: ReportData): PersonalityResult[]
  */
 export function getPeakHourContext(peakMinute: string): string {
   const hour = new Date(peakMinute).getHours();
+  const minute = new Date(peakMinute).getMinutes();
+  
+  // Special case for 12:01 PM EST (platform peak)
+  if (hour === 12 && minute <= 5) {
+    return 'right at 12:01 PM EST—when the platform hit $5.1M/min';
+  }
+  
   const contexts: Record<number, string> = {
     0: 'right when midnight shoppers were browsing',
     1: 'in the wee hours—dedicated night owls',
@@ -277,7 +284,7 @@ export function getPeakHourContext(peakMinute: string): string {
     9: 'mid-morning surge—productivity break',
     10: 'late morning—pre-lunch browsing',
     11: 'lunch hour—hungry shoppers',
-    12: 'noon rush—lunch break shopping',
+    12: 'noon rush—lunch break shopping (right when the platform peaked!)',
     13: 'afternoon kickoff—post-lunch energy',
     14: 'mid-afternoon—afternoon slump shopping',
     15: 'late afternoon—pre-dinner browsing',

@@ -316,31 +316,51 @@ export default function ReportGeneratorForm({ onGenerate, isGenerating }: Report
       // Use Promise.allSettled to handle partial failures gracefully
       // Track progress as queries complete using a ref to avoid race conditions
       let completedCount = 0;
-      const updateProgress = (label: string) => {
+      
+      // Engaging loading messages for each query
+      const loadingMessages = [
+        'Unwrapping your BFCM story...',
+        'Counting your wins...',
+        'Discovering your peak moments...',
+        'Finding your best sellers...',
+        'Analyzing channel performance...',
+        'Checking retail locations...',
+        'Calculating conversion rates...',
+        'Understanding your customers...',
+        'Tracing referrers...',
+        'Gathering platform insights...',
+        'Breaking down by store...',
+        'Analyzing discount impact...',
+        'Mapping global reach...',
+        'Calculating units per transaction...',
+      ];
+      
+      const updateProgress = (index: number, label: string) => {
         completedCount++;
+        const messageIndex = Math.min(index, loadingMessages.length - 1);
         setGenerationProgress({
           completed: completedCount,
           total: queries.length,
-          current: label,
+          current: loadingMessages[messageIndex] || `Fetching ${label}...`,
         });
       };
 
       const results = await Promise.allSettled(
-        queries.map(async (query) => {
+        queries.map(async (query, index) => {
           try {
             const result = await query.fn();
             // Update progress when query completes successfully
-            updateProgress(query.label);
+            updateProgress(index, query.label);
             return result;
           } catch (error) {
             // Still count as completed even if it failed
-            updateProgress(query.label);
+            updateProgress(index, query.label);
             throw error;
           }
         })
       );
 
-      setGenerationProgress({ completed: queries.length, total: queries.length, current: 'Finalizing...' });
+      setGenerationProgress({ completed: queries.length, total: queries.length, current: 'Putting it all together...' });
 
       // Extract results and track failures with proper typing
       const metrics2025Result = results[0];
@@ -764,22 +784,32 @@ export default function ReportGeneratorForm({ onGenerate, isGenerating }: Report
         </div>
 
         {generationProgress && (
-          <div className="bg-blue-50 border border-blue-200 p-4 rounded-md animate-fade-in" role="status" aria-live="polite" aria-atomic="true">
-            <div className="flex items-center gap-3">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600" aria-hidden="true"></div>
+          <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 border-2 border-blue-300 p-6 rounded-lg animate-fade-in shadow-lg" role="status" aria-live="polite" aria-atomic="true">
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                <div className="animate-spin rounded-full h-8 w-8 border-4 border-blue-200 border-t-blue-600" aria-hidden="true"></div>
+                <div className="absolute inset-0 animate-ping rounded-full h-8 w-8 border-2 border-blue-400 opacity-20"></div>
+              </div>
               <div className="flex-1">
-                <p className="text-sm font-medium text-blue-900">
-                  {generationProgress.current}...
+                <p className="text-base font-semibold text-blue-900 mb-2">
+                  {generationProgress.current}
                 </p>
-                <div className="mt-2 w-full bg-blue-200 rounded-full h-2" role="progressbar" aria-valuenow={generationProgress.completed} aria-valuemin={0} aria-valuemax={generationProgress.total}>
+                <div className="mt-2 w-full bg-blue-200 rounded-full h-3 overflow-hidden shadow-inner" role="progressbar" aria-valuenow={generationProgress.completed} aria-valuemin={0} aria-valuemax={generationProgress.total}>
                   <div
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                    className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 h-3 rounded-full transition-all duration-500 ease-out relative"
                     style={{ width: `${(generationProgress.completed / generationProgress.total) * 100}%` }}
-                  ></div>
+                  >
+                    <div className="absolute inset-0 bg-white/30 animate-pulse"></div>
+                  </div>
                 </div>
-                <p className="text-xs text-blue-700 mt-1">
-                  {generationProgress.completed} of {generationProgress.total} queries completed
-                </p>
+                <div className="flex justify-between items-center mt-2">
+                  <p className="text-xs text-blue-700 font-medium">
+                    {generationProgress.completed} of {generationProgress.total} queries completed
+                  </p>
+                  <p className="text-xs text-blue-600 font-semibold">
+                    {Math.round((generationProgress.completed / generationProgress.total) * 100)}%
+                  </p>
+                </div>
               </div>
             </div>
           </div>
