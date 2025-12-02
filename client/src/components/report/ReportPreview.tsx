@@ -497,7 +497,7 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                 </div>
                 <div>
                   <div className={`text-2xl font-bold ${ColorTheme.platform.textBold}`}>
-                    {`${94900.toLocaleString()}+`}
+                    {String(94900).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}+
                   </div>
                   <div className="text-sm text-white/70">Merchants</div>
                   <div className={`text-xs ${ColorTheme.platform.accent} mt-1`}>Best Day Ever</div>
