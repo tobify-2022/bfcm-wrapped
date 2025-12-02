@@ -515,11 +515,77 @@ export function getConversionMetricsQuery(
 }
 
 export function getReferrerDataQuery(
-  _shopIds: string | string[],
-  _startDate: string,
-  _endDate: string
+  shopIds: string | string[],
+  startDate: string,
+  endDate: string
 ): string {
-  return `Referrer Data query - not available (referring_site field not accessible)`;
+  const { sqlList: shopIdList } = parseShopIds(shopIds);
+  return `
+    WITH sale_period AS (
+      SELECT 
+        TIMESTAMP('${startDate} 00:00:00') as start_date,
+        TIMESTAMP('${endDate} 23:59:59') as end_date
+    ),
+    successful_orders AS (
+      SELECT DISTINCT
+        otps.order_id,
+        otps.amount_presentment as order_amount
+      FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
+      CROSS JOIN sale_period sp
+      WHERE otps.shop_id IN (${shopIdList})
+        AND otps.order_transaction_processed_at >= sp.start_date
+        AND otps.order_transaction_processed_at <= sp.end_date
+        AND otps.order_transaction_kind = 'capture'
+        AND otps.order_transaction_status = 'success'
+        AND NOT otps.is_test
+        AND otps._extracted_at >= TIMESTAMP('${startDate}')
+    ),
+    referrer_attribution AS (
+      SELECT 
+        ash.referring_channel,
+        ash.referring_category,
+        ash.referrer,
+        ash.referrer_url,
+        COUNT(DISTINCT ash.order_id) as orders,
+        SUM(so.order_amount) as gmv
+      FROM \`shopify-dw.buyer_activity.attributed_sessions_history\` ash
+      INNER JOIN successful_orders so ON ash.order_id = so.order_id
+      WHERE ash.is_current = TRUE
+        AND ash.is_last = TRUE
+        AND ash.session_timestamp >= TIMESTAMP('${startDate} 00:00:00')
+        AND ash.session_timestamp <= TIMESTAMP('${endDate} 23:59:59')
+      GROUP BY ash.referring_channel, ash.referring_category, ash.referrer, ash.referrer_url
+    ),
+    top_referrer_data AS (
+      SELECT 
+        COALESCE(
+          CASE 
+            WHEN referring_channel IS NOT NULL AND referring_category IS NOT NULL 
+            THEN CONCAT(referring_channel, ' (', referring_category, ')')
+            WHEN referring_channel IS NOT NULL 
+            THEN referring_channel
+            WHEN referrer_url IS NOT NULL 
+            THEN referrer_url
+            WHEN referrer IS NOT NULL 
+            THEN referrer
+            ELSE 'Direct'
+          END,
+          'Unknown'
+        ) as top_referrer,
+        SUM(gmv) as referrer_gmv,
+        SUM(orders) as referrer_orders
+      FROM referrer_attribution
+      GROUP BY referring_channel, referring_category, referrer, referrer_url
+      ORDER BY referrer_gmv DESC
+      LIMIT 1
+    )
+    SELECT 
+      COALESCE(trd.top_referrer, 'Unknown') as top_referrer,
+      COALESCE(trd.referrer_gmv, 0) as referrer_gmv,
+      COALESCE(trd.referrer_orders, 0) as referrer_orders
+    FROM (SELECT 1 as dummy) d
+    LEFT JOIN top_referrer_data trd ON 1=1
+  `;
 }
 
 export function getShopifyBFCMStatsQuery(
@@ -702,10 +768,13 @@ export async function getRetailMetrics(
         o.order_id,
         o.location_id,
         so.order_amount,
-        -- Try to get location name from locations table (may not be accessible)
-        CAST(NULL AS STRING) as location_name  -- Will be NULL if locations table not accessible
+        -- Get location name from logistics.locations_history (per Data Portal MCP findings)
+        l.name as location_name
       FROM \`shopify-dw.merchant_sales.orders\` o
       INNER JOIN successful_orders so ON o.order_id = so.order_id
+      LEFT JOIN \`shopify-dw.logistics.locations_history\` l
+        ON o.location_id = l.location_id
+        AND l.valid_to IS NULL  -- Get current location records only
       WHERE o.shop_id IN (${shopIdList})
         AND NOT o.is_deleted
         AND NOT o.is_cancelled
@@ -850,8 +919,8 @@ export async function getCustomerInsights(
         o.customer_id,
         o.created_at as order_created_at,
         so.order_amount,
-        -- Get customer email from customer_email_addresses_history (email removed from core table in Aug 2025)
-        cea.email as customer_email,
+        -- Get customer email from customer_email_addresses_history (field name is email_address, not email)
+        cea.email_address as customer_email,
         -- Get customer name from customers_history
         c.first_name as customer_first_name,
         c.last_name as customer_last_name,
@@ -957,23 +1026,117 @@ export async function getCustomerInsights(
 
 /**
  * Get referrer data
- * NOTE: referring_site field not available in merchant_sales.orders
- * This function returns empty data as the field is not accessible
- * Supports single shop or multiple shops (for consistency, though returns empty)
+ * Uses shopify-dw.buyer_activity.attributed_sessions_history for referrer attribution
+ * Supports single shop or multiple shops (aggregates results)
  */
 export async function getReferrerData(
-  _shopIds: string | string[],
-  _startDate: string,
-  _endDate: string
-): Promise<ReferrerData> {
-  // referring_site field is not available in merchant_sales.orders table
-  console.warn('⚠️ Referrer data (referring_site) not available in merchant_sales.orders table');
+  shopIds: string | string[],
+  startDate: string,
+  endDate: string
+): Promise<{ data: ReferrerData; query: string }> {
+  const { sqlList: shopIdList } = parseShopIds(shopIds);
   
-  return {
-    top_referrer: null,
-    referrer_gmv: 0,
-    referrer_orders: 0,
-  };
+  const query = `
+    WITH sale_period AS (
+      SELECT 
+        TIMESTAMP('${startDate} 00:00:00') as start_date,
+        TIMESTAMP('${endDate} 23:59:59') as end_date
+    ),
+    successful_orders AS (
+      SELECT DISTINCT
+        otps.order_id,
+        otps.amount_presentment as order_amount
+      FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
+      CROSS JOIN sale_period sp
+      WHERE otps.shop_id IN (${shopIdList})
+        AND otps.order_transaction_processed_at >= sp.start_date
+        AND otps.order_transaction_processed_at <= sp.end_date
+        AND otps.order_transaction_kind = 'capture'
+        AND otps.order_transaction_status = 'success'
+        AND NOT otps.is_test
+        AND otps._extracted_at >= TIMESTAMP('${startDate}')
+    ),
+    referrer_attribution AS (
+      SELECT 
+        ash.referring_channel,
+        ash.referring_category,
+        ash.referrer,
+        ash.referrer_url,
+        COUNT(DISTINCT ash.order_id) as orders,
+        SUM(so.order_amount) as gmv
+      FROM \`shopify-dw.buyer_activity.attributed_sessions_history\` ash
+      INNER JOIN successful_orders so ON ash.order_id = so.order_id
+      WHERE ash.is_current = TRUE
+        AND ash.is_last = TRUE
+        AND ash.session_timestamp >= TIMESTAMP('${startDate} 00:00:00')
+        AND ash.session_timestamp <= TIMESTAMP('${endDate} 23:59:59')
+      GROUP BY ash.referring_channel, ash.referring_category, ash.referrer, ash.referrer_url
+    ),
+    top_referrer_data AS (
+      SELECT 
+        COALESCE(
+          CASE 
+            WHEN referring_channel IS NOT NULL AND referring_category IS NOT NULL 
+            THEN CONCAT(referring_channel, ' (', referring_category, ')')
+            WHEN referring_channel IS NOT NULL 
+            THEN referring_channel
+            WHEN referrer_url IS NOT NULL 
+            THEN referrer_url
+            WHEN referrer IS NOT NULL 
+            THEN referrer
+            ELSE 'Direct'
+          END,
+          'Unknown'
+        ) as top_referrer,
+        SUM(gmv) as referrer_gmv,
+        SUM(orders) as referrer_orders
+      FROM referrer_attribution
+      GROUP BY referring_channel, referring_category, referrer, referrer_url
+      ORDER BY referrer_gmv DESC
+      LIMIT 1
+    )
+    SELECT 
+      COALESCE(trd.top_referrer, 'Unknown') as top_referrer,
+      COALESCE(trd.referrer_gmv, 0) as referrer_gmv,
+      COALESCE(trd.referrer_orders, 0) as referrer_orders
+    FROM (SELECT 1 as dummy) d
+    LEFT JOIN top_referrer_data trd ON 1=1
+  `;
+  
+  try {
+    const result = await quickAPI.queryBigQuery(query);
+    
+    if (result.rows.length === 0) {
+      return {
+        data: {
+          top_referrer: null,
+          referrer_gmv: 0,
+          referrer_orders: 0,
+        },
+        query,
+      };
+    }
+    
+    const row = result.rows[0];
+    return {
+      data: {
+        top_referrer: row.top_referrer ? String(row.top_referrer) : null,
+        referrer_gmv: Number(row.referrer_gmv || 0),
+        referrer_orders: Number(row.referrer_orders || 0),
+      },
+      query,
+    };
+  } catch (error) {
+    console.error('Error fetching referrer data:', error);
+    return {
+      data: {
+        top_referrer: null,
+        referrer_gmv: 0,
+        referrer_orders: 0,
+      },
+      query,
+    };
+  }
 }
 
 /**

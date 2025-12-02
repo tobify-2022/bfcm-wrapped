@@ -11,6 +11,7 @@ import {
   getConversionMetrics,
   getCustomerInsights,
   getReferrerData,
+  getReferrerDataQuery,
   getShopifyBFCMStats,
   getShopBreakdown,
   getDiscountMetrics,
@@ -281,7 +282,7 @@ export default function ReportGeneratorForm({ onGenerate, isGenerating }: Report
               label: 'Referrer Data', 
               key: 'referrerData',
               fn: () => getReferrerData(finalShopIds, startDate, endDate),
-              queryFn: () => `-- Referrer Data query (see getReferrerData function)`
+              queryFn: () => getReferrerDataQuery(finalShopIds, startDate, endDate)
             },
             { 
               label: 'Shopify Stats', 
@@ -411,7 +412,10 @@ export default function ReportGeneratorForm({ onGenerate, isGenerating }: Report
         : (errors.push('Customer Insights'), { top_customer_email: null, top_customer_name: null, top_customer_spend: 0, top_customer_orders: 0, new_customers: 0, returning_customers: 0 });
       
       const referrerData: ReferrerData = referrerDataResult.status === 'fulfilled' 
-        ? (referrerDataResult.value as ReferrerData)
+        ? (() => {
+            const value = referrerDataResult.value as { data?: ReferrerData; query?: string } | ReferrerData;
+            return 'data' in value && value.data ? value.data : (value as ReferrerData);
+          })()
         : (errors.push('Referrer Data'), { top_referrer: null, referrer_gmv: 0, referrer_orders: 0 });
       
       const shopifyBFCMStats: ShopifyBFCMStats | null = shopifyBFCMStatsResult.status === 'fulfilled' 
