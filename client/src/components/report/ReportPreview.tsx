@@ -170,7 +170,7 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
         <div>
           <h2 className="text-2xl font-bold bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
             {data.accountName}
-          </h2>
+        </h2>
           {data.shopIds.length > 1 && (
             <p className="text-sm text-white/70 mt-1">
               Reporting for {data.shopIds.length} shops
@@ -204,15 +204,15 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
           
           <div className="relative z-10">
             <div className="text-6xl mb-4">🎁</div>
-            <h1 className="text-5xl font-bold mb-3 bg-gradient-to-r from-pink-400 via-cyan-400 to-pink-400 bg-clip-text text-transparent animate-gradient">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-pink-400 via-cyan-400 to-pink-400 bg-clip-text text-transparent animate-gradient">
               Your BFCM 2025, Wrapped
-            </h1>
-            <p className="text-2xl font-light mb-2 text-white/90">
-              {data.accountName}
-            </p>
-            <p className="text-lg text-white/75">
+          </h1>
+            <p className="text-xl sm:text-2xl font-light mb-2 text-white/90">
+            {data.accountName}
+          </p>
+            <p className="text-base sm:text-lg text-white/75">
               {new Date(data.startDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} - {new Date(data.endDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
-            </p>
+          </p>
           </div>
         </div>
 
@@ -221,7 +221,7 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
           <div className="max-w-5xl mx-auto">
             <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
               BFCM 2025 BY THE NUMBERS
-            </h2>
+          </h2>
             <p className="text-lg text-white/90 mb-6 text-center max-w-3xl mx-auto leading-relaxed">
               Shoppers flocked to independent businesses in record numbers, driving unprecedented sales worldwide. Our merchants just made history, generating a record <span className="text-pink-400 font-bold">$14.6 billion</span> in sales* over Black Friday Cyber Monday (BFCM) weekend, up <span className="text-cyan-400 font-bold">27%</span> from last year. As sale banners lit up and products sold out, <span className="text-pink-400 font-bold">81+ million customers</span>** around the world bought from businesses powered by Shopify.
             </p>
@@ -261,12 +261,12 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
               </div>
               <div className="text-white/70">
                 <span className="text-purple-400">🌎</span> <strong className="text-white">Top Countries:</strong> US, UK, Australia, Germany, Canada
-              </div>
+            </div>
             </div>
           </div>
         </div>
 
-        <div className="p-8 md:p-12 bg-gradient-to-br from-slate-900 via-blue-900/50 to-purple-900/50">
+        <div className="p-4 sm:p-6 md:p-8 lg:p-12 bg-gradient-to-br from-slate-900 via-blue-900/50 to-purple-900/50">
           {/* Badges Section */}
           {badges.length > 0 && (
             <AnimatedSection delay={200}>
@@ -289,8 +289,8 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
               <div className="mb-12">
                 <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
                   Your Commerce Personality
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                   {personalities.map((personality, index) => (
                     <div 
                       key={index}
@@ -314,7 +314,7 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
             </h2>
             
             {/* YoY Comparison Visualization */}
-            {data.metrics2024.total_gmv > 0 && (
+              {data.metrics2024.total_gmv > 0 && (
               <div className="mb-8 p-6 bg-gradient-to-br from-slate-800/50 to-blue-900/50 rounded-2xl border-2 border-cyan-500/20 backdrop-blur-sm">
                 <h3 className="text-xl font-semibold mb-4 text-center text-white">Year-over-Year Growth</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -400,7 +400,7 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
               </div>
             )}
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
               <div className="bg-gradient-to-br from-pink-500/20 to-purple-500/20 rounded-2xl p-8 border-2 border-pink-500/30 backdrop-blur-sm relative overflow-hidden">
                 {yoyGMVChange > 0 && (
                   <div className="absolute top-4 right-4 text-3xl opacity-20">📈</div>
@@ -412,12 +412,12 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                 {data.metrics2024.total_gmv > 0 && (
                   <div className={`text-lg font-semibold ${yoyGMVChange >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
                     {formatPercent(yoyGMVChange)} vs 2024
-                  </div>
-                )}
+                </div>
+              )}
                 <div className="text-sm text-white/70 mt-3 italic">
                   {getGMVContext(data.metrics2025.total_gmv)}
                 </div>
-              </div>
+            </div>
 
               <div className="bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-2xl p-8 border-2 border-cyan-500/30 backdrop-blur-sm relative overflow-hidden">
                 {yoyOrdersChange > 0 && (
@@ -425,9 +425,9 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                 )}
                 <div className="text-sm text-white/70 mb-2 uppercase tracking-wide">Total Orders</div>
                 <div className="text-4xl font-bold text-cyan-400 mb-3">
-                  {data.metrics2025.total_orders.toLocaleString()}
-                </div>
-                {data.metrics2024.total_orders > 0 && (
+                {data.metrics2025.total_orders.toLocaleString()}
+              </div>
+              {data.metrics2024.total_orders > 0 && (
                   <div className={`text-lg font-semibold ${yoyOrdersChange >= 0 ? 'text-pink-400' : 'text-red-400'}`}>
                     {formatPercent(yoyOrdersChange)} vs 2024
                   </div>
@@ -435,7 +435,7 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                 <div className="text-sm text-white/70 mt-3">
                   Orders fulfilled
                 </div>
-              </div>
+            </div>
 
               <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl p-8 border-2 border-purple-500/30 backdrop-blur-sm relative overflow-hidden">
                 {yoyAOVChange > 0 && (
@@ -443,9 +443,9 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                 )}
                 <div className="text-sm text-white/70 mb-2 uppercase tracking-wide">Average Order Value</div>
                 <div className="text-4xl font-bold text-purple-400 mb-3">
-                  {formatCurrency(data.metrics2025.aov)}
-                </div>
-                {data.metrics2024.aov > 0 && (
+                {formatCurrency(data.metrics2025.aov)}
+              </div>
+              {data.metrics2024.aov > 0 && (
                   <div className={`text-lg font-semibold ${yoyAOVChange >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
                     {formatPercent(yoyAOVChange)} vs 2024
                   </div>
@@ -524,24 +524,24 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                     </div>
                   </div>
                 )}
-              </div>
+        </div>
             </AnimatedSection>
           )}
 
           {/* Peak Performance - Enhanced */}
-          {data.peakGMV && (
+        {data.peakGMV && (
             <AnimatedSection delay={800}>
               <div className="mb-12 p-8 bg-gradient-to-br from-pink-500/20 via-purple-500/20 to-cyan-500/20 rounded-2xl border-2 border-pink-500/30 backdrop-blur-sm">
                 <div className="flex items-center gap-2 mb-4">
                   <h3 className="text-2xl font-bold bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
                     ⚡ Your Peak Moment
-                  </h3>
+            </h3>
                   <QueryTooltip queryKey="peakGMV">
                     <span></span>
                   </QueryTooltip>
                 </div>
                 <div className="text-5xl font-bold bg-gradient-to-r from-pink-400 via-cyan-400 to-pink-400 bg-clip-text text-transparent mb-3 animate-gradient">
-                  {formatCurrency(data.peakGMV.peak_gmv_per_minute)} per minute
+              {formatCurrency(data.peakGMV.peak_gmv_per_minute)} per minute
                 </div>
                 <div className="text-lg text-white/80 mb-2">
                   {new Date(data.peakGMV.peak_minute).toLocaleString('en-US', { 
@@ -559,14 +559,77 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
             </AnimatedSection>
           )}
 
+          {/* Shopify Ecosystem Wins */}
+          {(data.customerInsights.shop_pay_pct !== undefined && data.customerInsights.shop_pay_pct > 0) || 
+           (data.channelPerformance.some(c => c.channel_type.toLowerCase() === 'pos')) ? (
+            <AnimatedSection delay={900}>
+              <div className="mb-12">
+                <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-center bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
+                  🚀 Shopify Ecosystem Wins
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                  {data.customerInsights.shop_pay_pct !== undefined && data.customerInsights.shop_pay_pct > 0 && (
+                    <div className="bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-2xl p-6 sm:p-8 border-2 border-cyan-500/30 backdrop-blur-sm">
+                      <div className="text-4xl mb-3">💳</div>
+                      <div className="text-sm text-white/70 mb-2 uppercase tracking-wide">Shop Pay Adoption</div>
+                      <div className="text-3xl font-bold text-cyan-400 mb-2">
+                        {data.customerInsights.shop_pay_pct.toFixed(1)}%
+                      </div>
+                      <div className="text-sm text-white/80 mb-3">
+                        of orders used Shop Pay
+                      </div>
+                      {data.customerInsights.shop_pay_pct >= 32 && (
+                        <div className="text-xs text-cyan-300 font-semibold">
+                          ✨ Above platform average (32%)
+                        </div>
+                      )}
+                      {data.customerInsights.shop_pay_pct < 32 && (
+                        <div className="text-xs text-white/60">
+                          Platform average: 32%
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {data.channelPerformance.some(c => c.channel_type.toLowerCase() === 'pos') && (
+                    <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl p-6 sm:p-8 border-2 border-purple-500/30 backdrop-blur-sm">
+                      <div className="text-4xl mb-3">🏪</div>
+                      <div className="text-sm text-white/70 mb-2 uppercase tracking-wide">Omnichannel</div>
+                      <div className="text-lg font-semibold text-purple-400 mb-2">
+                        POS + Online Performance
+                      </div>
+                      {data.channelPerformance.filter(c => c.channel_type.toLowerCase() === 'pos').map(pos => (
+                        <div key="pos" className="text-sm text-white/80">
+                          <div className="font-semibold text-white">{formatCurrency(pos.gmv_2025)}</div>
+                          <div className="text-xs text-white/70">{pos.orders_2025.toLocaleString()} orders</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {data.customerInsights.shop_pay_pct !== undefined && data.customerInsights.shop_pay_pct > 0 && (
+                    <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-2xl p-6 sm:p-8 border-2 border-green-500/30 backdrop-blur-sm">
+                      <div className="text-4xl mb-3">⚡</div>
+                      <div className="text-sm text-white/70 mb-2 uppercase tracking-wide">Conversion Impact</div>
+                      <div className="text-lg font-semibold text-green-400 mb-2">
+                        Shop Pay Advantage
+                      </div>
+                      <div className="text-sm text-white/80">
+                        Shop Pay typically converts 1.72x better than other payment methods
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </AnimatedSection>
+          ) : null}
+
           {/* Your Customer Story */}
           {data.customerInsights.top_customer_spend > 0 && (
             <AnimatedSection delay={1000}>
             <div className="mb-12">
-              <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
+              <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-center bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
                 Your Customer Story
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6">
                 <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl p-8 border-2 border-purple-500/30 backdrop-blur-sm">
                   <div className="text-sm text-white/70 mb-2 uppercase tracking-wide">Top Customer</div>
                   <div className="text-2xl font-bold text-pink-400 mb-2">
@@ -871,7 +934,7 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                 <div className="flex items-center gap-2 mb-6 justify-center">
                   <h2 className="text-3xl font-bold bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
                     🌍 Your Global Reach
-                  </h2>
+            </h2>
                   <QueryTooltip queryKey="internationalSales">
                     <span></span>
                   </QueryTooltip>
@@ -1012,25 +1075,25 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
               <p className="text-sm text-white/70">
                 Product-level data not available. Check BigQuery table access.
               </p>
-            </div>
-          )}
+          </div>
+        )}
 
           {/* Channel Performance - Enhanced */}
-          {data.channelPerformance.length > 0 && (
+        {data.channelPerformance.length > 0 && (
             <AnimatedSection delay={1800}>
               <div className="mb-12">
                 <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent text-center">
                   📈 Sales by Channel
-                </h2>
-                <div className="space-y-3">
-                  {data.channelPerformance.map((channel, index) => (
+            </h2>
+            <div className="space-y-3">
+              {data.channelPerformance.map((channel, index) => (
                     <div key={index} className="p-5 bg-gradient-to-r from-slate-800/50 to-blue-900/50 rounded-lg border border-cyan-500/20 backdrop-blur-sm">
                       <div className="flex justify-between items-center mb-3">
                         <div className="font-semibold text-lg capitalize text-white">{channel.channel_type}</div>
                         <div className={`text-lg font-bold ${channel.yoy_growth_pct >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
-                          {formatPercent(channel.yoy_growth_pct)} YoY
-                        </div>
-                      </div>
+                      {formatPercent(channel.yoy_growth_pct)} YoY
+                    </div>
+                  </div>
                       <div className="grid grid-cols-4 gap-4 text-sm">
                         <div>
                           <div className="text-white/70">2025 GMV</div>
@@ -1044,7 +1107,7 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                           <div className="text-white/70">2024 GMV</div>
                           <div className="font-medium text-purple-400">{formatCurrency(channel.gmv_2024)}</div>
                         </div>
-                        <div>
+                    <div>
                           <div className="text-white/70">2024 Orders</div>
                           <div className="font-medium text-blue-400">{channel.orders_2024.toLocaleString()}</div>
                         </div>
@@ -1071,7 +1134,7 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
             </div>
             <div className="text-xs text-white/60">
               BFCM Wrapped Report • {new Date().toLocaleDateString()}
-            </div>
+                </div>
             <div className="text-xs text-white/50 mt-2">
               * Sales figures represent gross merchandise value processed through Shopify's platform<br/>
               ** Consumer count represents unique customers who made purchases
