@@ -1,0 +1,20 @@
+{
+  "name": "bfcm-wrapped",
+  "displayName": "BFCM Wrapped",
+  "description": "Generate personalized BFCM performance reports for merchants",
+  "version": "0.1.0",
+  "apis": {
+    "identity": true,
+    "dataWarehouse": true
+  },
+  "bigquery": {
+    "datasets": [
+      "shopify-dw.sales",
+      "shopify-dw.mart_revenue_data",
+      "shopify-dw.orders",
+      "shopify-dw.analytics",
+      "shopify-dw.customers"
+    ]
+  }
+}
+
