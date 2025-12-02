@@ -3,6 +3,22 @@
 @tailwind utilities;
 
 @layer utilities {
+  .animate-gradient {
+    background-size: 200% 200%;
+    animation: gradient 8s linear infinite;
+  }
+  
+  @keyframes gradient {
+    0%, 100% {
+      background-position: left center;
+    }
+    50% {
+      background-position: right center;
+    }
+  }
+}
+
+@layer utilities {
   .animate-fade-in {
     animation: fadeIn 0.3s ease-in;
   }
@@ -21,6 +37,6 @@
 
 @layer base {
   body {
-    @apply bg-white text-gray-900;
+    @apply bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 text-white;
   }
 }

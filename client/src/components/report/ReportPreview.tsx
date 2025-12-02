@@ -133,26 +133,26 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
   if (!hasData) {
     return (
       <div className="max-w-4xl mx-auto">
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-8 text-center">
+        <div className="bg-gradient-to-br from-amber-500/20 to-yellow-500/20 border border-amber-500/30 rounded-lg p-8 text-center backdrop-blur-sm">
           <div className="text-4xl mb-4">📊</div>
-          <h3 className="text-xl font-semibold text-yellow-900 mb-2">
+          <h3 className="text-xl font-semibold text-amber-400 mb-2">
             No Data Available
           </h3>
-          <p className="text-yellow-800 mb-4">
+          <p className="text-white/80 mb-4">
             No orders or GMV found for {data.accountName} during the selected period.
           </p>
           {data.shopIds.length > 1 && (
-            <p className="text-sm text-yellow-700 mb-2">
+            <p className="text-sm text-white/70 mb-2">
               Reporting for {data.shopIds.length} shops: {data.shopIds.join(', ')}
             </p>
           )}
-          <p className="text-sm text-yellow-700 mb-4">
+          <p className="text-sm text-white/70 mb-4">
             Period: {new Date(data.startDate).toLocaleDateString()} - {new Date(data.endDate).toLocaleDateString()}
           </p>
           {isFutureDate && (
-            <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-md text-left">
-              <p className="text-sm font-medium text-blue-900 mb-2">💡 Tip:</p>
-              <p className="text-sm text-blue-800">
+            <div className="mt-4 p-4 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 border border-blue-500/30 rounded-md text-left backdrop-blur-sm">
+              <p className="text-sm font-medium text-cyan-400 mb-2">💡 Tip:</p>
+              <p className="text-sm text-white/80">
                 The selected date range is in the future. To test with actual data, try using BFCM 2024 dates (Nov 28 - Dec 1, 2024) using the "Use BFCM 2024 dates" button in the form above.
               </p>
             </div>
@@ -167,59 +167,118 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
       <Confetti trigger={showConfetti} />
       <div className="mb-6 flex justify-between items-center">
         <div>
-        <h2 className="text-2xl font-bold text-shopify-dark-green">
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
             {data.accountName}
-        </h2>
+          </h2>
           {data.shopIds.length > 1 && (
-            <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-white/70 mt-1">
               Reporting for {data.shopIds.length} shops
             </p>
           )}
         </div>
         <button
           onClick={handleDownloadPDF}
-          className="flex items-center gap-2 bg-gradient-to-r from-shopify-blue to-shopify-green text-white px-6 py-3 rounded-full hover:shadow-lg transition-all font-semibold"
+          className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-cyan-500 text-white px-6 py-3 rounded-full hover:shadow-lg hover:shadow-pink-500/50 transition-all font-semibold border border-white/20"
         >
           <Download className="w-4 h-4" />
           Download PDF
         </button>
       </div>
 
-      <div id="report-content" className="bg-white rounded-3xl shadow-2xl overflow-hidden">
-        {/* Hero Section - Spotify Wrapped Style */}
-        <div className="bg-gradient-to-br from-shopify-green via-shopify-blue to-purple-600 text-white p-12 text-center relative overflow-hidden">
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-10 left-10 w-32 h-32 bg-white rounded-full blur-3xl"></div>
-            <div className="absolute bottom-10 right-10 w-40 h-40 bg-white rounded-full blur-3xl"></div>
+      <div id="report-content" className="bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 rounded-3xl shadow-2xl overflow-hidden border border-cyan-500/20">
+        {/* Hero Section - Shopify BFCM 2025 Style */}
+        <div className="bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 text-white p-12 text-center relative overflow-hidden border-b-2 border-cyan-500/30">
+          {/* Animated background effects */}
+          <div className="absolute inset-0 opacity-20">
+            <div className="absolute top-10 left-10 w-64 h-64 bg-pink-500 rounded-full blur-3xl animate-pulse"></div>
+            <div className="absolute bottom-10 right-10 w-80 h-80 bg-cyan-500 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-500 rounded-full blur-3xl opacity-10"></div>
           </div>
+          
+          {/* Grid pattern overlay */}
+          <div className="absolute inset-0 opacity-5" style={{
+            backgroundImage: 'linear-gradient(cyan 1px, transparent 1px), linear-gradient(90deg, cyan 1px, transparent 1px)',
+            backgroundSize: '50px 50px'
+          }}></div>
+          
           <div className="relative z-10">
             <div className="text-6xl mb-4">🎁</div>
-            <h1 className="text-5xl font-bold mb-3">
-              Your Year, Wrapped in Commerce
-          </h1>
-            <p className="text-2xl font-light mb-2 opacity-90">
-            {data.accountName}
-          </p>
-            <p className="text-lg opacity-75">
-              BFCM 2025 • {new Date(data.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {new Date(data.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-          </p>
+            <h1 className="text-5xl font-bold mb-3 bg-gradient-to-r from-pink-400 via-cyan-400 to-pink-400 bg-clip-text text-transparent animate-gradient">
+              Your BFCM 2025, Wrapped
+            </h1>
+            <p className="text-2xl font-light mb-2 text-white/90">
+              {data.accountName}
+            </p>
+            <p className="text-lg text-white/75">
+              {new Date(data.startDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} - {new Date(data.endDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+            </p>
           </div>
         </div>
 
-        <div className="p-8 md:p-12">
+        {/* Shopify BFCM 2025 Platform Stats - Prominent Section */}
+        <div className="bg-gradient-to-br from-slate-800/50 to-blue-900/50 p-8 border-b-2 border-cyan-500/20">
+          <div className="max-w-5xl mx-auto">
+            <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
+              BFCM 2025 BY THE NUMBERS
+            </h2>
+            <p className="text-lg text-white/90 mb-6 text-center max-w-3xl mx-auto leading-relaxed">
+              Shoppers flocked to independent businesses in record numbers, driving unprecedented sales worldwide. Our merchants just made history, generating a record <span className="text-pink-400 font-bold">$14.6 billion</span> in sales* over Black Friday Cyber Monday (BFCM) weekend, up <span className="text-cyan-400 font-bold">27%</span> from last year. As sale banners lit up and products sold out, <span className="text-pink-400 font-bold">81+ million customers</span>** around the world bought from businesses powered by Shopify.
+            </p>
+            <p className="text-base text-white/80 mb-8 text-center max-w-3xl mx-auto italic">
+              Shopping peaked at 12:01 p.m. EST on Friday when sales reached a dizzying $5.1 million per minute.
+            </p>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <div className="bg-gradient-to-br from-pink-500/20 to-purple-500/20 rounded-xl p-4 border border-pink-500/30 backdrop-blur-sm">
+                <div className="text-2xl font-bold text-pink-400 mb-1">$14.6B</div>
+                <div className="text-xs text-white/80 uppercase tracking-wide">Global Sales</div>
+                <div className="text-xs text-cyan-400 mt-1">+27% YoY</div>
+              </div>
+              <div className="bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-xl p-4 border border-cyan-500/30 backdrop-blur-sm">
+                <div className="text-2xl font-bold text-cyan-400 mb-1">81M+</div>
+                <div className="text-xs text-white/80 uppercase tracking-wide">Consumers</div>
+                <div className="text-xs text-pink-400 mt-1">Worldwide</div>
+              </div>
+              <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl p-4 border border-purple-500/30 backdrop-blur-sm">
+                <div className="text-2xl font-bold text-purple-400 mb-1">$5.1M</div>
+                <div className="text-xs text-white/80 uppercase tracking-wide">Peak/Min</div>
+                <div className="text-xs text-cyan-400 mt-1">12:01 PM EST</div>
+              </div>
+              <div className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl p-4 border border-blue-500/30 backdrop-blur-sm">
+                <div className="text-2xl font-bold text-blue-400 mb-1">94.9K+</div>
+                <div className="text-xs text-white/80 uppercase tracking-wide">Merchants</div>
+                <div className="text-xs text-pink-400 mt-1">Best Day Ever</div>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+              <div className="text-white/70">
+                <span className="text-pink-400">🛍️</span> <strong className="text-white">Hottest Categories:</strong> Cosmetics, Clothing Tops & Pants, Activewear, Fitness & Nutrition
+              </div>
+              <div className="text-white/70">
+                <span className="text-cyan-400">🛒</span> <strong className="text-white">Average Cart:</strong> $114.70 ($112.29 constant currency)
+              </div>
+              <div className="text-white/70">
+                <span className="text-purple-400">🌎</span> <strong className="text-white">Top Countries:</strong> US, UK, Australia, Germany, Canada
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="p-8 md:p-12 bg-gradient-to-br from-slate-900 via-blue-900/50 to-purple-900/50">
           {/* Badges Section */}
           {badges.length > 0 && (
             <AnimatedSection delay={200}>
               <div className="mb-12">
-              <h2 className="text-3xl font-bold text-shopify-dark-green mb-6 text-center">
-                Your Achievements
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {badges.map((badge) => (
-                  <Badge key={badge.id} badge={badge} />
-                ))}
+                <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
+                  Your Achievements
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {badges.map((badge) => (
+                    <Badge key={badge.id} badge={badge} />
+                  ))}
+                </div>
               </div>
-            </div>
             </AnimatedSection>
           )}
 
@@ -227,73 +286,73 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
           {personalities.length > 0 && (
             <AnimatedSection delay={400}>
               <div className="mb-12">
-              <h2 className="text-3xl font-bold text-shopify-dark-green mb-6 text-center">
-                Your Commerce Personality
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {personalities.map((personality, index) => (
-                  <div 
-                    key={index}
-                    className={`bg-gradient-to-br ${personality.color} rounded-2xl p-8 text-white shadow-lg`}
-                  >
-                    <div className="text-6xl mb-4">{personality.emoji}</div>
-                    <div className="text-2xl font-bold mb-2">{personality.title}</div>
-                    <div className="text-lg opacity-90">{personality.description}</div>
-                  </div>
-                ))}
+                <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
+                  Your Commerce Personality
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {personalities.map((personality, index) => (
+                    <div 
+                      key={index}
+                      className={`bg-gradient-to-br ${personality.color} rounded-2xl p-8 text-white shadow-lg border border-white/20 backdrop-blur-sm`}
+                    >
+                      <div className="text-6xl mb-4">{personality.emoji}</div>
+                      <div className="text-2xl font-bold mb-2">{personality.title}</div>
+                      <div className="text-lg opacity-90">{personality.description}</div>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
             </AnimatedSection>
           )}
 
           {/* Your BFCM 2025 by the Numbers */}
           <AnimatedSection delay={600}>
             <div className="mb-12">
-            <h2 className="text-3xl font-bold text-shopify-dark-green mb-6 text-center">
+            <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
               Your BFCM 2025 by the Numbers
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="bg-gradient-to-br from-shopify-green/10 to-shopify-green/5 rounded-2xl p-8 border-2 border-shopify-green/20">
-                <div className="text-sm text-muted-foreground mb-2 uppercase tracking-wide">Total Sales</div>
-                <div className="text-4xl font-bold text-shopify-green mb-3">
+              <div className="bg-gradient-to-br from-pink-500/20 to-purple-500/20 rounded-2xl p-8 border-2 border-pink-500/30 backdrop-blur-sm">
+                <div className="text-sm text-white/70 mb-2 uppercase tracking-wide">Total Sales</div>
+                <div className="text-4xl font-bold text-pink-400 mb-3">
                   {formatCurrency(data.metrics2025.total_gmv)}
                 </div>
                 {data.metrics2024.total_gmv > 0 && (
-                  <div className={`text-lg font-semibold ${yoyGMVChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <div className={`text-lg font-semibold ${yoyGMVChange >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
                     {formatPercent(yoyGMVChange)} vs 2024
                   </div>
                 )}
-                <div className="text-sm text-muted-foreground mt-3 italic">
+                <div className="text-sm text-white/70 mt-3 italic">
                   {getGMVContext(data.metrics2025.total_gmv)}
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-shopify-blue/10 to-shopify-blue/5 rounded-2xl p-8 border-2 border-shopify-blue/20">
-                <div className="text-sm text-muted-foreground mb-2 uppercase tracking-wide">Total Orders</div>
-                <div className="text-4xl font-bold text-shopify-blue mb-3">
+              <div className="bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-2xl p-8 border-2 border-cyan-500/30 backdrop-blur-sm">
+                <div className="text-sm text-white/70 mb-2 uppercase tracking-wide">Total Orders</div>
+                <div className="text-4xl font-bold text-cyan-400 mb-3">
                   {data.metrics2025.total_orders.toLocaleString()}
                 </div>
                 {data.metrics2024.total_orders > 0 && (
-                  <div className={`text-lg font-semibold ${yoyOrdersChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <div className={`text-lg font-semibold ${yoyOrdersChange >= 0 ? 'text-pink-400' : 'text-red-400'}`}>
                     {formatPercent(yoyOrdersChange)} vs 2024
                   </div>
                 )}
-                <div className="text-sm text-muted-foreground mt-3">
+                <div className="text-sm text-white/70 mt-3">
                   Orders fulfilled
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-purple-500/10 to-purple-500/5 rounded-2xl p-8 border-2 border-purple-500/20">
-                <div className="text-sm text-muted-foreground mb-2 uppercase tracking-wide">Average Order Value</div>
-                <div className="text-4xl font-bold text-purple-600 mb-3">
+              <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl p-8 border-2 border-purple-500/30 backdrop-blur-sm">
+                <div className="text-sm text-white/70 mb-2 uppercase tracking-wide">Average Order Value</div>
+                <div className="text-4xl font-bold text-purple-400 mb-3">
                   {formatCurrency(data.metrics2025.aov)}
                 </div>
                 {data.metrics2024.aov > 0 && (
-                  <div className={`text-lg font-semibold ${yoyAOVChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <div className={`text-lg font-semibold ${yoyAOVChange >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
                     {formatPercent(yoyAOVChange)} vs 2024
                   </div>
                 )}
-                <div className="text-sm text-muted-foreground mt-3">
+                <div className="text-sm text-white/70 mt-3">
                   Per order
                 </div>
               </div>
@@ -301,71 +360,62 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
           </div>
           </AnimatedSection>
 
-          {/* Shopify BFCM Stats (High Level) */}
-          {data.shopifyBFCMStats ? (
-            <div className="mb-12 p-8 bg-gradient-to-br from-shopify-green/10 to-shopify-blue/10 rounded-2xl border-2 border-shopify-green/20">
+          {/* Shopify BFCM Stats (High Level) - Already shown above, but keeping for tooltip reference */}
+          {data.shopifyBFCMStats && (
+            <div className="mb-12 p-8 bg-gradient-to-br from-slate-800/50 to-blue-900/50 rounded-2xl border-2 border-cyan-500/20 backdrop-blur-sm">
               <div className="flex items-center gap-2 mb-6 justify-center">
-                <h2 className="text-2xl font-semibold text-shopify-dark-green">
-                  Shopify BFCM 2025 (Platform-Wide)
-          </h2>
+                <h2 className="text-2xl font-semibold bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
+                  Platform-Wide Stats
+                </h2>
                 <QueryTooltip queryKey="shopifyBFCMStats">
                   <span></span>
                 </QueryTooltip>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-            <div>
-                  <div className="text-2xl font-bold text-shopify-green">
+                <div>
+                  <div className="text-2xl font-bold text-pink-400">
                     {formatCurrency(data.shopifyBFCMStats.total_gmv_processed)}
                   </div>
-              <div className="text-sm text-muted-foreground">Total GMV Processed</div>
-            </div>
-            <div>
-                  <div className="text-2xl font-bold text-shopify-green">
-                    {formatCurrency(data.shopifyBFCMStats.peak_gmv_per_minute)}
-                  </div>
-              <div className="text-sm text-muted-foreground">Peak GMV per Minute</div>
-            </div>
-            <div>
-                  <div className="text-2xl font-bold text-shopify-green">
-                    {data.shopifyBFCMStats.total_orders.toLocaleString()}
-                  </div>
-                  <div className="text-sm text-muted-foreground">Total Orders</div>
+                  <div className="text-sm text-white/70">Total GMV Processed</div>
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-shopify-green">
+                  <div className="text-2xl font-bold text-cyan-400">
+                    {formatCurrency(data.shopifyBFCMStats.peak_gmv_per_minute)}
+                  </div>
+                  <div className="text-sm text-white/70">Peak GMV per Minute</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-purple-400">
+                    {data.shopifyBFCMStats.total_orders.toLocaleString()}
+                  </div>
+                  <div className="text-sm text-white/70">Total Orders</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-blue-400">
                     {data.shopifyBFCMStats.total_shops.toLocaleString()}
                   </div>
-                  <div className="text-sm text-muted-foreground">Active Shops</div>
-            </div>
-          </div>
-        </div>
-          ) : (
-            <div className="mb-8 p-6 bg-gray-50 rounded-lg border border-gray-200">
-              <h2 className="text-xl font-semibold mb-2 text-shopify-dark-green">
-                Shopify BFCM 2025 Stats
-          </h2>
-              <p className="text-sm text-muted-foreground">
-                Platform-wide stats require special permissions. Showing merchant-specific data below.
-              </p>
+                  <div className="text-sm text-white/70">Active Shops</div>
+                </div>
+              </div>
             </div>
           )}
 
           {/* Peak Performance - Enhanced */}
           {data.peakGMV && (
             <AnimatedSection delay={800}>
-              <div className="mb-12 p-8 bg-gradient-to-br from-yellow-400/20 via-orange-400/20 to-red-400/20 rounded-2xl border-2 border-yellow-400/30">
+              <div className="mb-12 p-8 bg-gradient-to-br from-pink-500/20 via-purple-500/20 to-cyan-500/20 rounded-2xl border-2 border-pink-500/30 backdrop-blur-sm">
                 <div className="flex items-center gap-2 mb-4">
-                  <h3 className="text-2xl font-bold text-shopify-dark-green">
+                  <h3 className="text-2xl font-bold bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
                     ⚡ Your Peak Moment
                   </h3>
                   <QueryTooltip queryKey="peakGMV">
                     <span></span>
                   </QueryTooltip>
                 </div>
-                <div className="text-5xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent mb-3">
+                <div className="text-5xl font-bold bg-gradient-to-r from-pink-400 via-cyan-400 to-pink-400 bg-clip-text text-transparent mb-3 animate-gradient">
                   {formatCurrency(data.peakGMV.peak_gmv_per_minute)} per minute
                 </div>
-                <div className="text-lg text-muted-foreground mb-2">
+                <div className="text-lg text-white/80 mb-2">
                   {new Date(data.peakGMV.peak_minute).toLocaleString('en-US', { 
                     weekday: 'long',
                     month: 'long', 
@@ -374,7 +424,7 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                     minute: '2-digit'
                   })}
                 </div>
-                <div className="text-base font-medium text-shopify-dark-green italic">
+                <div className="text-base font-medium text-white/90 italic">
                   {getPeakGMVContext(data.peakGMV.peak_gmv_per_minute, data.peakGMV.peak_minute)}
                 </div>
               </div>
@@ -385,28 +435,28 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
           {data.customerInsights.top_customer_spend > 0 && (
             <AnimatedSection delay={1000}>
             <div className="mb-12">
-              <h2 className="text-3xl font-bold text-shopify-dark-green mb-6 text-center">
+              <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
                 Your Customer Story
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-2xl p-8 border-2 border-indigo-500/20">
-                  <div className="text-sm text-muted-foreground mb-2 uppercase tracking-wide">Top Customer</div>
-                  <div className="text-2xl font-bold text-indigo-700 mb-2">
+                <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl p-8 border-2 border-purple-500/30 backdrop-blur-sm">
+                  <div className="text-sm text-white/70 mb-2 uppercase tracking-wide">Top Customer</div>
+                  <div className="text-2xl font-bold text-pink-400 mb-2">
                     {formatCurrency(data.customerInsights.top_customer_spend)}
                   </div>
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-sm text-white/80">
                     {getTopCustomerContext(data)}
                   </div>
                 </div>
-                <div className="bg-gradient-to-br from-pink-500/10 to-rose-500/10 rounded-2xl p-8 border-2 border-pink-500/20">
-                  <div className="text-sm text-muted-foreground mb-2 uppercase tracking-wide">Customer Mix</div>
-                  <div className="text-2xl font-bold text-pink-700 mb-2">
+                <div className="bg-gradient-to-br from-pink-500/20 to-cyan-500/20 rounded-2xl p-8 border-2 border-pink-500/30 backdrop-blur-sm">
+                  <div className="text-sm text-white/70 mb-2 uppercase tracking-wide">Customer Mix</div>
+                  <div className="text-2xl font-bold text-pink-400 mb-2">
                     {data.customerInsights.new_customers.toLocaleString()} new
                   </div>
-                  <div className="text-xl font-semibold text-rose-600 mb-2">
+                  <div className="text-xl font-semibold text-cyan-400 mb-2">
                     {data.customerInsights.returning_customers.toLocaleString()} returning
                   </div>
-                  <div className="text-sm text-muted-foreground italic">
+                  <div className="text-sm text-white/80 italic">
                     {getCustomerContext(data)}
                   </div>
                 </div>
@@ -417,89 +467,93 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
 
         {/* Retail Metrics */}
         {data.retailMetrics.retail_orders > 0 && (
-          <div className="mb-8">
-            <div className="flex items-center gap-2 mb-4">
-              <h2 className="text-2xl font-semibold text-shopify-dark-green">
-                📍 Retail Performance
-              </h2>
-              <QueryTooltip queryKey="retailMetrics">
-                <span></span>
-              </QueryTooltip>
+          <AnimatedSection delay={1000}>
+            <div className="mb-12">
+              <div className="flex items-center gap-2 mb-4">
+                <h2 className="text-2xl font-semibold bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
+                  📍 Retail Performance
+                </h2>
+                <QueryTooltip queryKey="retailMetrics">
+                  <span></span>
+                </QueryTooltip>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-5 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg border border-purple-500/30 backdrop-blur-sm">
+                  <div className="text-sm text-white/70 mb-1">Top Retail Location</div>
+                  <div className="text-xl font-bold text-purple-400">
+                    {data.retailMetrics.top_location || 'N/A'}
+                  </div>
+                </div>
+                <div className="p-5 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg border border-purple-500/30 backdrop-blur-sm">
+                  <div className="text-sm text-white/70 mb-1">Total Retail GMV</div>
+                  <div className="text-xl font-bold text-pink-400">
+                    {formatCurrency(data.retailMetrics.retail_gmv)}
+                  </div>
+                </div>
+                <div className="p-5 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg border border-purple-500/30 backdrop-blur-sm">
+                  <div className="text-sm text-white/70 mb-1">Retail AOV</div>
+                  <div className="text-xl font-bold text-purple-400">
+                    {formatCurrency(data.retailMetrics.retail_aov)}
+                  </div>
+                </div>
+                <div className="p-5 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg border border-purple-500/30 backdrop-blur-sm">
+                  <div className="text-sm text-white/70 mb-1">Retail UPT (Units Per Transaction)</div>
+                  <div className="text-xl font-bold text-cyan-400">
+                    {data.retailMetrics.retail_upt.toFixed(1)}
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-5 bg-purple-50 rounded-lg border border-purple-200">
-                <div className="text-sm text-muted-foreground mb-1">Top Retail Location</div>
-                <div className="text-xl font-bold text-purple-700">
-                  {data.retailMetrics.top_location || 'N/A'}
-                </div>
-              </div>
-              <div className="p-5 bg-purple-50 rounded-lg border border-purple-200">
-                <div className="text-sm text-muted-foreground mb-1">Total Retail GMV</div>
-                <div className="text-xl font-bold text-purple-700">
-                  {formatCurrency(data.retailMetrics.retail_gmv)}
-                </div>
-              </div>
-              <div className="p-5 bg-purple-50 rounded-lg border border-purple-200">
-                <div className="text-sm text-muted-foreground mb-1">Retail AOV</div>
-                <div className="text-xl font-bold text-purple-700">
-                  {formatCurrency(data.retailMetrics.retail_aov)}
-                </div>
-              </div>
-              <div className="p-5 bg-purple-50 rounded-lg border border-purple-200">
-                <div className="text-sm text-muted-foreground mb-1">Retail UPT (Units Per Transaction)</div>
-                <div className="text-xl font-bold text-purple-700">
-                  {data.retailMetrics.retail_upt.toFixed(1)}
-                </div>
-              </div>
-            </div>
-                </div>
-              )}
+          </AnimatedSection>
+        )}
 
         {/* Conversion Metrics */}
         {data.conversionMetrics.total_sessions > 0 ? (
-          <div className="mb-8">
-            <div className="flex items-center gap-2 mb-4">
-              <h2 className="text-2xl font-semibold text-shopify-dark-green">
-                📊 Conversion Funnel
-              </h2>
-              <QueryTooltip queryKey="conversionMetrics">
-                <span></span>
-              </QueryTooltip>
+          <AnimatedSection delay={1600}>
+            <div className="mb-12">
+              <div className="flex items-center gap-2 mb-4">
+                <h2 className="text-2xl font-semibold bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
+                  📊 Conversion Funnel
+                </h2>
+                <QueryTooltip queryKey="conversionMetrics">
+                  <span></span>
+                </QueryTooltip>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-5 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-lg border border-blue-500/30 backdrop-blur-sm">
+                  <div className="text-sm text-white/70 mb-1">Total Sessions</div>
+                  <div className="text-2xl font-bold text-cyan-400">
+                    {data.conversionMetrics.total_sessions.toLocaleString()}
+                  </div>
+                </div>
+                <div className="p-5 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-lg border border-blue-500/30 backdrop-blur-sm">
+                  <div className="text-sm text-white/70 mb-1">Conversion Rate</div>
+                  <div className="text-2xl font-bold text-pink-400">
+                    {data.conversionMetrics.conversion_rate.toFixed(2)}%
+                  </div>
+                </div>
+                <div className="p-5 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-lg border border-blue-500/30 backdrop-blur-sm">
+                  <div className="text-sm text-white/70 mb-1">Cart → Checkout Rate</div>
+                  <div className="text-2xl font-bold text-purple-400">
+                    {data.conversionMetrics.cart_to_checkout_rate.toFixed(1)}%
+                  </div>
+                </div>
+                <div className="p-5 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-lg border border-blue-500/30 backdrop-blur-sm">
+                  <div className="text-sm text-white/70 mb-1">Mobile vs Desktop</div>
+                  <div className="text-lg font-semibold text-white">
+                    Mobile: {data.conversionMetrics.mobile_sessions.toLocaleString()} | 
+                    Desktop: {data.conversionMetrics.desktop_sessions.toLocaleString()}
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-5 bg-blue-50 rounded-lg border border-blue-200">
-                <div className="text-sm text-muted-foreground mb-1">Total Sessions</div>
-                <div className="text-2xl font-bold text-blue-700">
-                  {data.conversionMetrics.total_sessions.toLocaleString()}
-                </div>
-              </div>
-              <div className="p-5 bg-blue-50 rounded-lg border border-blue-200">
-                <div className="text-sm text-muted-foreground mb-1">Conversion Rate</div>
-                <div className="text-2xl font-bold text-blue-700">
-                  {data.conversionMetrics.conversion_rate.toFixed(2)}%
-                </div>
-              </div>
-              <div className="p-5 bg-blue-50 rounded-lg border border-blue-200">
-                <div className="text-sm text-muted-foreground mb-1">Cart → Checkout Rate</div>
-                <div className="text-2xl font-bold text-blue-700">
-                  {data.conversionMetrics.cart_to_checkout_rate.toFixed(1)}%
-                </div>
-              </div>
-              <div className="p-5 bg-blue-50 rounded-lg border border-blue-200">
-                <div className="text-sm text-muted-foreground mb-1">Mobile vs Desktop</div>
-                <div className="text-lg font-semibold text-blue-700">
-                  Mobile: {data.conversionMetrics.mobile_sessions.toLocaleString()} | 
-                  Desktop: {data.conversionMetrics.desktop_sessions.toLocaleString()}
-                </div>
-              </div>
-            </div>
-          </div>
+          </AnimatedSection>
         ) : (
-          <div className="mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
-            <h3 className="text-lg font-semibold mb-2 text-shopify-dark-green">
+          <div className="mb-8 p-4 bg-gradient-to-br from-slate-800/50 to-blue-900/50 rounded-lg border border-cyan-500/20 backdrop-blur-sm">
+            <h3 className="text-lg font-semibold mb-2 bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
               📊 Conversion Funnel
             </h3>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-white/70">
               Session and analytics data not available in accessible BigQuery tables.
             </p>
           </div>
@@ -507,103 +561,109 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
 
         {/* Shop Breakdown - Per Store Metrics */}
         {data.shopBreakdown.length > 1 && (
-          <div className="mb-8">
-            <div className="flex items-center gap-2 mb-4">
-              <h2 className="text-2xl font-semibold text-shopify-dark-green">
-                📊 Performance by Store
-              </h2>
-              <QueryTooltip queryKey="shopBreakdown">
-                <span></span>
-              </QueryTooltip>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="border-b-2 border-shopify-green/20">
-                    <th className="text-left p-3 font-semibold text-shopify-dark-green">Shop ID</th>
-                    <th className="text-right p-3 font-semibold text-shopify-dark-green">Orders</th>
-                    <th className="text-right p-3 font-semibold text-shopify-dark-green">GMV</th>
-                    <th className="text-right p-3 font-semibold text-shopify-dark-green">AOV</th>
-                    <th className="text-right p-3 font-semibold text-shopify-dark-green">IPT</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.shopBreakdown.map((shop) => (
-                    <tr key={shop.shop_id} className="border-b border-gray-100 hover:bg-gray-50">
-                      <td className="p-3 font-mono text-sm">{shop.shop_id}</td>
-                      <td className="p-3 text-right">{shop.total_orders.toLocaleString()}</td>
-                      <td className="p-3 text-right font-semibold">{formatCurrency(shop.total_gmv)}</td>
-                      <td className="p-3 text-right">{formatCurrency(shop.aov)}</td>
-                      <td className="p-3 text-right">{shop.units_per_transaction.toFixed(1)}</td>
+          <AnimatedSection delay={2000}>
+            <div className="mb-12">
+              <div className="flex items-center gap-2 mb-4">
+                <h2 className="text-2xl font-semibold bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
+                  📊 Performance by Store
+                </h2>
+                <QueryTooltip queryKey="shopBreakdown">
+                  <span></span>
+                </QueryTooltip>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr className="border-b-2 border-cyan-500/30">
+                      <th className="text-left p-3 font-semibold text-white">Shop ID</th>
+                      <th className="text-right p-3 font-semibold text-white">Orders</th>
+                      <th className="text-right p-3 font-semibold text-white">GMV</th>
+                      <th className="text-right p-3 font-semibold text-white">AOV</th>
+                      <th className="text-right p-3 font-semibold text-white">IPT</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {data.shopBreakdown.map((shop) => (
+                      <tr key={shop.shop_id} className="border-b border-cyan-500/10 hover:bg-slate-800/30">
+                        <td className="p-3 font-mono text-sm text-white/90">{shop.shop_id}</td>
+                        <td className="p-3 text-right text-cyan-400">{shop.total_orders.toLocaleString()}</td>
+                        <td className="p-3 text-right font-semibold text-pink-400">{formatCurrency(shop.total_gmv)}</td>
+                        <td className="p-3 text-right text-purple-400">{formatCurrency(shop.aov)}</td>
+                        <td className="p-3 text-right text-blue-400">{shop.units_per_transaction.toFixed(1)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
+          </AnimatedSection>
         )}
 
         {/* Units Per Transaction */}
         {data.unitsPerTransaction > 0 && (
-          <div className="mb-8 p-6 bg-indigo-50 rounded-lg border border-indigo-200">
-            <div className="flex items-center gap-2 mb-2">
-              <h3 className="text-xl font-semibold text-shopify-dark-green">
-                📦 Units Per Transaction (IPT)
-              </h3>
-              <QueryTooltip queryKey="unitsPerTransaction">
-                <span></span>
-              </QueryTooltip>
+          <AnimatedSection delay={2200}>
+            <div className="mb-12 p-6 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-lg border border-indigo-500/30 backdrop-blur-sm">
+              <div className="flex items-center gap-2 mb-2">
+                <h3 className="text-xl font-semibold bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
+                  📦 Units Per Transaction (IPT)
+                </h3>
+                <QueryTooltip queryKey="unitsPerTransaction">
+                  <span></span>
+                </QueryTooltip>
+              </div>
+              <div className="text-4xl font-bold text-indigo-400">
+                {data.unitsPerTransaction.toFixed(1)}
+              </div>
+              <div className="text-sm text-white/70 mt-1">
+                Average number of units sold per order
+              </div>
             </div>
-            <div className="text-4xl font-bold text-indigo-700">
-              {data.unitsPerTransaction.toFixed(1)}
-            </div>
-            <div className="text-sm text-muted-foreground mt-1">
-              Average number of units sold per order
-            </div>
-          </div>
+          </AnimatedSection>
         )}
 
         {/* Discount Metrics */}
-        {data.discountMetrics.total_discounted_sales > 0 || data.discountMetrics.total_full_price_sales > 0 ? (
-          <div className="mb-8">
-            <div className="flex items-center gap-2 mb-4">
-              <h2 className="text-2xl font-semibold text-shopify-dark-green">
-                💰 Discount Performance
-              </h2>
-              <QueryTooltip queryKey="discountMetrics">
-                <span></span>
-              </QueryTooltip>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-5 bg-green-50 rounded-lg border border-green-200">
-                <div className="text-sm text-muted-foreground mb-1">Discounted Sales</div>
-                <div className="text-2xl font-bold text-green-700 mb-1">
-                  {formatCurrency(data.discountMetrics.total_discounted_sales)}
-                </div>
-                <div className="text-sm font-medium text-green-600">
-                  {data.discountMetrics.discounted_sales_pct.toFixed(1)}% of total sales
-                </div>
+        {(data.discountMetrics.total_discounted_sales > 0 || data.discountMetrics.total_full_price_sales > 0) && (
+          <AnimatedSection delay={2400}>
+            <div className="mb-12">
+              <div className="flex items-center gap-2 mb-4">
+                <h2 className="text-2xl font-semibold bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
+                  💰 Discount Performance
+                </h2>
+                <QueryTooltip queryKey="discountMetrics">
+                  <span></span>
+                </QueryTooltip>
               </div>
-              <div className="p-5 bg-blue-50 rounded-lg border border-blue-200">
-                <div className="text-sm text-muted-foreground mb-1">Full Price Sales</div>
-                <div className="text-2xl font-bold text-blue-700 mb-1">
-                  {formatCurrency(data.discountMetrics.total_full_price_sales)}
-                </div>
-                <div className="text-sm font-medium text-blue-600">
-                  {data.discountMetrics.full_price_sales_pct.toFixed(1)}% of total sales
-                </div>
-              </div>
-              {data.discountMetrics.total_discount_amount > 0 && (
-                <div className="p-5 bg-amber-50 rounded-lg border border-amber-200 col-span-2">
-                  <div className="text-sm text-muted-foreground mb-1">Total Discount Amount</div>
-                  <div className="text-xl font-bold text-amber-700">
-                    {formatCurrency(data.discountMetrics.total_discount_amount)}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-5 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-lg border border-green-500/30 backdrop-blur-sm">
+                  <div className="text-sm text-white/70 mb-1">Discounted Sales</div>
+                  <div className="text-2xl font-bold text-green-400 mb-1">
+                    {formatCurrency(data.discountMetrics.total_discounted_sales)}
+                  </div>
+                  <div className="text-sm font-medium text-cyan-400">
+                    {data.discountMetrics.discounted_sales_pct.toFixed(1)}% of total sales
                   </div>
                 </div>
-              )}
+                <div className="p-5 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-lg border border-blue-500/30 backdrop-blur-sm">
+                  <div className="text-sm text-white/70 mb-1">Full Price Sales</div>
+                  <div className="text-2xl font-bold text-blue-400 mb-1">
+                    {formatCurrency(data.discountMetrics.total_full_price_sales)}
+                  </div>
+                  <div className="text-sm font-medium text-pink-400">
+                    {data.discountMetrics.full_price_sales_pct.toFixed(1)}% of total sales
+                  </div>
+                </div>
+                {data.discountMetrics.total_discount_amount > 0 && (
+                  <div className="p-5 bg-gradient-to-br from-amber-500/20 to-yellow-500/20 rounded-lg border border-amber-500/30 col-span-2 backdrop-blur-sm">
+                    <div className="text-sm text-white/70 mb-1">Total Discount Amount</div>
+                    <div className="text-xl font-bold text-amber-400">
+                      {formatCurrency(data.discountMetrics.total_discount_amount)}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        ) : null}
+          </AnimatedSection>
+        )}
 
           {/* International Sales - Enhanced */}
           {data.internationalSales.top_countries.length > 0 && (
@@ -661,15 +721,15 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
             <AnimatedSection delay={1400}>
             <div className="mb-12">
               <div className="flex items-center gap-2 mb-6 justify-center">
-                <h2 className="text-3xl font-bold text-shopify-dark-green">
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
                   🏆 Your Best Sellers
-            </h2>
+                </h2>
                 <QueryTooltip queryKey="topProducts">
                   <span></span>
                 </QueryTooltip>
               </div>
               {data.topProducts[0] && (
-                <div className="mb-6 p-8 bg-gradient-to-br from-amber-400/20 via-yellow-400/20 to-orange-400/20 rounded-2xl border-2 border-amber-400/30 relative overflow-hidden">
+                <div className="mb-6 p-8 bg-gradient-to-br from-pink-500/20 via-purple-500/20 to-cyan-500/20 rounded-2xl border-2 border-pink-500/30 relative overflow-hidden backdrop-blur-sm">
                   <div className="absolute top-0 right-0 text-8xl opacity-10">🏆</div>
                   <div className="relative z-10 flex gap-6">
                     {(data.topProducts[0].image_url || data.topProducts[0].product_id) && (
@@ -677,7 +737,7 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                         <img 
                           src={data.topProducts[0].image_url || `https://cdn.shopify.com/s/files/1/${data.topProducts[0].product_id}/products/${data.topProducts[0].product_id}_small.jpg`}
                           alt={data.topProducts[0].product_title}
-                          className="w-32 h-32 object-cover rounded-xl border-2 border-amber-400/30 shadow-lg"
+                          className="w-32 h-32 object-cover rounded-xl border-2 border-pink-500/30 shadow-lg"
                           onError={(e) => {
                             // Hide image on error
                             (e.target as HTMLImageElement).style.display = 'none';
@@ -686,20 +746,20 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                       </div>
                     )}
                     <div className="flex-1">
-                      <div className="text-sm text-muted-foreground mb-2 uppercase tracking-wide font-semibold">#1 Best Seller</div>
-                      <div className="text-3xl font-bold text-amber-700 mb-2">{data.topProducts[0].product_title}</div>
+                      <div className="text-sm text-white/70 mb-2 uppercase tracking-wide font-semibold">#1 Best Seller</div>
+                      <div className="text-3xl font-bold text-pink-400 mb-2">{data.topProducts[0].product_title}</div>
                       {data.topProducts[0].variant_title && (
-                        <div className="text-lg text-amber-600 mb-3">{data.topProducts[0].variant_title}</div>
+                        <div className="text-lg text-cyan-400 mb-3">{data.topProducts[0].variant_title}</div>
                       )}
                       <div className="flex items-center gap-6 mb-3">
-                        <div className="text-2xl font-bold text-amber-600">
+                        <div className="text-2xl font-bold text-pink-400">
                           {formatCurrency(data.topProducts[0].revenue)}
                         </div>
-                        <div className="text-lg font-semibold text-amber-500">
+                        <div className="text-lg font-semibold text-cyan-400">
                           {data.topProducts[0].units_sold.toLocaleString()} units moved
                         </div>
                       </div>
-                      <div className="text-base text-muted-foreground italic font-medium">
+                      <div className="text-base text-white/80 italic font-medium">
                         ✨ Your customers couldn't get enough of this one!
                       </div>
                     </div>
@@ -708,36 +768,36 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
               )}
               <div className="space-y-2">
                 {data.topProducts.slice(1, 10).map((product, index) => (
-                  <div key={index + 2} className="flex justify-between items-center py-4 px-5 bg-gradient-to-r from-gray-50 via-white to-gray-50 rounded-xl border border-gray-200 hover:shadow-lg hover:scale-[1.02] transition-all">
+                  <div key={index + 2} className="flex justify-between items-center py-4 px-5 bg-gradient-to-r from-slate-800/50 via-blue-900/50 to-slate-800/50 rounded-xl border border-cyan-500/20 hover:shadow-lg hover:shadow-cyan-500/20 hover:scale-[1.02] transition-all backdrop-blur-sm">
                     <div className="flex items-center gap-4">
                       {(product.image_url || product.product_id) ? (
                         <img 
                           src={product.image_url || `https://cdn.shopify.com/s/files/1/${product.product_id}/products/${product.product_id}_small.jpg`}
                           alt={product.product_title}
-                          className="w-16 h-16 object-cover rounded-lg border border-gray-200 shadow-sm"
+                          className="w-16 h-16 object-cover rounded-lg border border-cyan-500/30 shadow-sm"
                           onError={(e) => {
                             // Replace with number badge on error
                             const parent = (e.target as HTMLImageElement).parentElement;
                             if (parent) {
-                              parent.innerHTML = `<div class="w-16 h-16 rounded-lg bg-gradient-to-br from-shopify-green/20 to-shopify-blue/20 flex items-center justify-center border border-gray-200"><span class="text-2xl font-bold text-shopify-green">${index + 2}</span></div>`;
+                              parent.innerHTML = `<div class="w-16 h-16 rounded-lg bg-gradient-to-br from-pink-500/30 to-cyan-500/30 flex items-center justify-center border border-pink-500/50"><span class="text-2xl font-bold text-pink-400">${index + 2}</span></div>`;
                             }
                           }}
                         />
                       ) : (
-                        <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-shopify-green/20 to-shopify-blue/20 flex items-center justify-center border border-gray-200">
-                          <span className="text-2xl font-bold text-shopify-green">{index + 2}</span>
+                        <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-pink-500/30 to-cyan-500/30 flex items-center justify-center border border-pink-500/50">
+                          <span className="text-2xl font-bold text-pink-400">{index + 2}</span>
                         </div>
                       )}
                       <div className="flex-1">
-                        <div className="font-bold text-lg">{product.product_title}</div>
+                        <div className="font-bold text-lg text-white">{product.product_title}</div>
                         {product.variant_title && (
-                          <div className="text-sm text-muted-foreground">{product.variant_title}</div>
+                          <div className="text-sm text-white/70">{product.variant_title}</div>
                         )}
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="font-bold text-xl text-shopify-green">{formatCurrency(product.revenue)}</div>
-                      <div className="text-sm text-muted-foreground font-medium">{product.units_sold.toLocaleString()} units</div>
+                      <div className="font-bold text-xl text-pink-400">{formatCurrency(product.revenue)}</div>
+                      <div className="text-sm text-white/70 font-medium">{product.units_sold.toLocaleString()} units</div>
                     </div>
                   </div>
                 ))}
@@ -745,11 +805,11 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
             </div>
             </AnimatedSection>
           ) : (
-            <div className="mb-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <h3 className="text-lg font-semibold mb-2 text-shopify-dark-green">
+            <div className="mb-8 p-4 bg-gradient-to-br from-slate-800/50 to-blue-900/50 rounded-lg border border-cyan-500/20 backdrop-blur-sm">
+              <h3 className="text-lg font-semibold mb-2 bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
                 🏆 Best Selling Items
               </h3>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-white/70">
                 Product-level data not available. Check BigQuery table access.
               </p>
             </div>
@@ -759,43 +819,43 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
           {data.channelPerformance.length > 0 && (
             <AnimatedSection delay={1800}>
               <div className="mb-12">
-                <h2 className="text-3xl font-bold mb-6 text-shopify-dark-green text-center">
+                <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent text-center">
                   📈 Sales by Channel
-            </h2>
-            <div className="space-y-3">
-              {data.channelPerformance.map((channel, index) => (
-                <div key={index} className="p-5 bg-muted/30 rounded-lg border border-gray-200">
-                  <div className="flex justify-between items-center mb-3">
-                    <div className="font-semibold text-lg capitalize">{channel.channel_type}</div>
-                    <div className={`text-lg font-bold ${channel.yoy_growth_pct >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {formatPercent(channel.yoy_growth_pct)} YoY
+                </h2>
+                <div className="space-y-3">
+                  {data.channelPerformance.map((channel, index) => (
+                    <div key={index} className="p-5 bg-gradient-to-r from-slate-800/50 to-blue-900/50 rounded-lg border border-cyan-500/20 backdrop-blur-sm">
+                      <div className="flex justify-between items-center mb-3">
+                        <div className="font-semibold text-lg capitalize text-white">{channel.channel_type}</div>
+                        <div className={`text-lg font-bold ${channel.yoy_growth_pct >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
+                          {formatPercent(channel.yoy_growth_pct)} YoY
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-4 gap-4 text-sm">
+                        <div>
+                          <div className="text-white/70">2025 GMV</div>
+                          <div className="font-medium text-lg text-pink-400">{formatCurrency(channel.gmv_2025)}</div>
+                        </div>
+                        <div>
+                          <div className="text-white/70">2025 Orders</div>
+                          <div className="font-medium text-cyan-400">{channel.orders_2025.toLocaleString()}</div>
+                        </div>
+                        <div>
+                          <div className="text-white/70">2024 GMV</div>
+                          <div className="font-medium text-purple-400">{formatCurrency(channel.gmv_2024)}</div>
+                        </div>
+                        <div>
+                          <div className="text-white/70">2024 Orders</div>
+                          <div className="font-medium text-blue-400">{channel.orders_2024.toLocaleString()}</div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="grid grid-cols-4 gap-4 text-sm">
-                    <div>
-                      <div className="text-muted-foreground">2025 GMV</div>
-                      <div className="font-medium text-lg">{formatCurrency(channel.gmv_2025)}</div>
-                    </div>
-                    <div>
-                      <div className="text-muted-foreground">2025 Orders</div>
-                      <div className="font-medium">{channel.orders_2025.toLocaleString()}</div>
-                    </div>
-                    <div>
-                      <div className="text-muted-foreground">2024 GMV</div>
-                      <div className="font-medium">{formatCurrency(channel.gmv_2024)}</div>
-                    </div>
-                    <div>
-                      <div className="text-muted-foreground">2024 Orders</div>
-                      <div className="font-medium">{channel.orders_2024.toLocaleString()}</div>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                  ))}
                 </div>
                 {biggestChannelGrowth && (
-                  <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
-                    <div className="text-sm text-muted-foreground mb-1">🚀 Biggest Channel Growth YoY</div>
-                    <div className="text-xl font-bold text-green-700 capitalize">
+                  <div className="mt-4 p-4 bg-gradient-to-br from-cyan-500/20 to-green-500/20 rounded-lg border border-cyan-500/30 backdrop-blur-sm">
+                    <div className="text-sm text-white/70 mb-1">🚀 Biggest Channel Growth YoY</div>
+                    <div className="text-xl font-bold text-cyan-400 capitalize">
                       {biggestChannelGrowth.channel_type}: {formatPercent(biggestChannelGrowth.yoy_growth_pct)}
                     </div>
                   </div>
@@ -805,12 +865,16 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
           )}
 
           {/* Footer - Shopify Branding */}
-          <div className="mt-12 pt-8 border-t-2 border-shopify-green/20 text-center">
-            <div className="text-sm text-muted-foreground mb-2">
+          <div className="mt-12 pt-8 border-t-2 border-cyan-500/20 text-center">
+            <div className="text-sm text-white/70 mb-2">
               Generated by Shopify Customer Success
             </div>
-            <div className="text-xs text-muted-foreground">
+            <div className="text-xs text-white/60">
               BFCM Wrapped Report • {new Date().toLocaleDateString()}
+            </div>
+            <div className="text-xs text-white/50 mt-2">
+              * Sales figures represent gross merchandise value processed through Shopify's platform<br/>
+              ** Consumer count represents unique customers who made purchases
             </div>
           </div>
         </div>
