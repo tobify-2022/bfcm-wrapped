@@ -413,12 +413,12 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                 {data.metrics2024.total_gmv > 0 && (
                   <div className={`text-lg font-semibold ${getGrowthColors(yoyGMVChange >= 0).text}`}>
                     {formatPercent(yoyGMVChange)} vs 2024
-                  </div>
-                )}
+                </div>
+              )}
                 <div className="text-sm text-white/70 mt-3 italic">
                   {getGMVContext(data.metrics2025.total_gmv)}
                 </div>
-              </div>
+            </div>
 
               <div className={`bg-gradient-to-br ${getMetricColors('orders').bgGradient} rounded-2xl p-8 border-2 ${getMetricColors('orders').border} backdrop-blur-sm relative overflow-hidden`}>
                 {yoyOrdersChange > 0 && (
@@ -426,9 +426,9 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                 )}
                 <div className="text-sm text-white/70 mb-2 uppercase tracking-wide">Total Orders</div>
                 <div className={`text-4xl font-bold ${getMetricColors('orders').textBold} mb-3`}>
-                  {data.metrics2025.total_orders.toLocaleString()}
-                </div>
-                {data.metrics2024.total_orders > 0 && (
+                {data.metrics2025.total_orders.toLocaleString()}
+              </div>
+              {data.metrics2024.total_orders > 0 && (
                   <div className={`text-lg font-semibold ${getGrowthColors(yoyOrdersChange >= 0).text}`}>
                     {formatPercent(yoyOrdersChange)} vs 2024
                   </div>
@@ -436,7 +436,7 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                 <div className="text-sm text-white/70 mt-3">
                   Orders fulfilled
                 </div>
-              </div>
+            </div>
 
               <div className={`bg-gradient-to-br ${getMetricColors('aov').bgGradient} rounded-2xl p-8 border-2 ${getMetricColors('aov').border} backdrop-blur-sm relative overflow-hidden`}>
                 {yoyAOVChange > 0 && (
@@ -444,9 +444,9 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                 )}
                 <div className="text-sm text-white/70 mb-2 uppercase tracking-wide">Average Order Value</div>
                 <div className={`text-4xl font-bold ${getMetricColors('aov').textBold} mb-3`}>
-                  {formatCurrency(data.metrics2025.aov)}
-                </div>
-                {data.metrics2024.aov > 0 && (
+                {formatCurrency(data.metrics2025.aov)}
+              </div>
+              {data.metrics2024.aov > 0 && (
                   <div className={`text-lg font-semibold ${getGrowthColors(yoyAOVChange >= 0).text}`}>
                     {formatPercent(yoyAOVChange)} vs 2024
                   </div>
@@ -460,72 +460,64 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
           </AnimatedSection>
 
           {/* Shopify BFCM Stats (High Level) - Platform-Wide Stats */}
-          {(data.shopifyBFCMStats || (data.startDate === '2025-11-28' && data.endDate === '2025-12-01')) && (
+          {/* Always show BFCM 2025 stats if dates match, or if shopifyBFCMStats is available */}
+          {((data.startDate === '2025-11-28' && data.endDate === '2025-12-01') || data.shopifyBFCMStats) && (
             <AnimatedSection delay={700}>
               <div className="mb-12 p-8 bg-gradient-to-br from-slate-800/50 to-blue-900/50 rounded-2xl border-2 border-cyan-500/20 backdrop-blur-sm">
                 <div className="flex items-center gap-2 mb-6 justify-center">
                   <h2 className="text-2xl font-semibold bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
-                    Platform-Wide Stats
+                    Shopify BFCM 2025 Stats
                   </h2>
                   <QueryTooltip queryKey="shopifyBFCMStats">
                     <span></span>
                   </QueryTooltip>
-                </div>
-                {data.shopifyBFCMStats ? (
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                    <div>
-                      <div className="text-2xl font-bold text-pink-400">
-                        {formatCurrency(data.shopifyBFCMStats.total_gmv_processed)}
-                      </div>
-                      <div className="text-sm text-white/70">Total GMV Processed</div>
-                    </div>
-                    <div>
-                      <div className="text-2xl font-bold text-cyan-400">
-                        {formatCurrency(data.shopifyBFCMStats.peak_gmv_per_minute)}
-                      </div>
-                      <div className="text-sm text-white/70">Peak GMV per Minute</div>
-                      <div className="text-xs text-cyan-300 mt-1">12:01 PM EST</div>
-                    </div>
-                    <div>
-                      <div className="text-2xl font-bold text-purple-400">
-                        {data.shopifyBFCMStats.total_orders > 0 ? data.shopifyBFCMStats.total_orders.toLocaleString() : '—'}
-                      </div>
-                      <div className="text-sm text-white/70">Total Orders</div>
-                    </div>
-                    <div>
-                      <div className="text-2xl font-bold text-blue-400">
-                        {data.shopifyBFCMStats.total_shops.toLocaleString()}
-                      </div>
-                      <div className="text-sm text-white/70">Merchants</div>
-                      <div className="text-xs text-blue-300 mt-1">Best Day Ever</div>
-                    </div>
-                  </div>
-                ) : (
-                  // Fallback: Show BFCM 2025 stats if query didn't return data
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                    <div>
-                      <div className={`text-2xl font-bold ${ColorTheme.gmv.textBold}`}>$14.6B</div>
-                      <div className="text-sm text-white/70">Total GMV Processed</div>
-                      <div className={`text-xs ${ColorTheme.growth.text} mt-1`}>+27% YoY</div>
-                    </div>
-                    <div>
-                      <div className={`text-2xl font-bold ${ColorTheme.gmv.textBold}`}>$5.1M</div>
-                      <div className="text-sm text-white/70">Peak GMV per Minute</div>
-                      <div className={`text-xs ${ColorTheme.platform.accent} mt-1`}>12:01 PM EST</div>
-                    </div>
-                    <div>
-                      <div className={`text-2xl font-bold ${ColorTheme.platform.textBold}`}>81M+</div>
-                      <div className="text-sm text-white/70">Consumers</div>
-                      <div className={`text-xs ${ColorTheme.platform.accent} mt-1`}>Worldwide</div>
-                    </div>
-                    <div>
-                      <div className={`text-2xl font-bold ${ColorTheme.platform.textBold}`}>94.9K+</div>
-                      <div className="text-sm text-white/70">Merchants</div>
-                      <div className={`text-xs ${ColorTheme.platform.accent} mt-1`}>Best Day Ever</div>
-                    </div>
-                  </div>
-                )}
         </div>
+                {/* Always show BFCM 2025 stats - use data.shopifyBFCMStats if available, otherwise use hardcoded values */}
+                {(() => {
+                  const stats = data.shopifyBFCMStats || {
+                    total_gmv_processed: 14600000000,
+                    peak_gmv_per_minute: 5100000,
+                    peak_minute: '2025-11-28T12:01:00',
+                    total_orders: 0,
+                    total_shops: 94900,
+                  };
+                  
+                  return (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                      <div>
+                        <div className={`text-2xl font-bold ${ColorTheme.gmv.textBold}`}>
+                          {formatCurrency(stats.total_gmv_processed)}
+                        </div>
+                        <div className="text-sm text-white/70">Total GMV Processed</div>
+                        <div className={`text-xs ${ColorTheme.growth.text} mt-1`}>+27% YoY</div>
+                      </div>
+                      <div>
+                        <div className={`text-2xl font-bold ${ColorTheme.gmv.textBold}`}>
+                          {formatCurrency(stats.peak_gmv_per_minute)}
+                        </div>
+                        <div className="text-sm text-white/70">Peak GMV per Minute</div>
+                        <div className={`text-xs ${ColorTheme.platform.accent} mt-1`}>12:01 PM EST</div>
+                      </div>
+                      <div>
+                        <div className={`text-2xl font-bold ${ColorTheme.platform.textBold}`}>
+                          {stats.total_orders > 0 ? stats.total_orders.toLocaleString() : '81M+'}
+                        </div>
+                        <div className="text-sm text-white/70">{stats.total_orders > 0 ? 'Total Orders' : 'Consumers'}</div>
+                        {stats.total_orders === 0 && (
+                          <div className={`text-xs ${ColorTheme.platform.accent} mt-1`}>Worldwide</div>
+                        )}
+                      </div>
+                      <div>
+                        <div className={`text-2xl font-bold ${ColorTheme.platform.textBold}`}>
+                          {stats.total_shops.toLocaleString()}+
+                        </div>
+                        <div className="text-sm text-white/70">Merchants</div>
+                        <div className={`text-xs ${ColorTheme.platform.accent} mt-1`}>Best Day Ever</div>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
             </AnimatedSection>
           )}
 
