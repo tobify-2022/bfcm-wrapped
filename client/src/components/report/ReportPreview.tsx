@@ -12,6 +12,7 @@ import {
   getInternationalContext
 } from '@/lib/contextual-copy';
 import { getCountryFlag, formatCountryName } from '@/lib/country-utils';
+import { ColorTheme, getMetricColors, getGrowthColors } from '@/lib/color-theme';
 import Badge from './Badge';
 import Confetti from './Confetti';
 import AnimatedSection from './AnimatedSection';
@@ -401,52 +402,52 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
             )}
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
-              <div className="bg-gradient-to-br from-pink-500/20 to-purple-500/20 rounded-2xl p-8 border-2 border-pink-500/30 backdrop-blur-sm relative overflow-hidden">
+              <div className={`bg-gradient-to-br ${getMetricColors('gmv').bgGradient} rounded-2xl p-8 border-2 ${getMetricColors('gmv').border} backdrop-blur-sm relative overflow-hidden`}>
                 {yoyGMVChange > 0 && (
                   <div className="absolute top-4 right-4 text-3xl opacity-20">📈</div>
                 )}
                 <div className="text-sm text-white/70 mb-2 uppercase tracking-wide">Total Sales</div>
-                <div className="text-4xl font-bold text-pink-400 mb-3">
+                <div className={`text-4xl font-bold ${getMetricColors('gmv').textBold} mb-3`}>
                   {formatCurrency(data.metrics2025.total_gmv)}
                 </div>
                 {data.metrics2024.total_gmv > 0 && (
-                  <div className={`text-lg font-semibold ${yoyGMVChange >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
+                  <div className={`text-lg font-semibold ${getGrowthColors(yoyGMVChange >= 0).text}`}>
                     {formatPercent(yoyGMVChange)} vs 2024
-                </div>
-              )}
+                  </div>
+                )}
                 <div className="text-sm text-white/70 mt-3 italic">
                   {getGMVContext(data.metrics2025.total_gmv)}
                 </div>
-            </div>
+              </div>
 
-              <div className="bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-2xl p-8 border-2 border-cyan-500/30 backdrop-blur-sm relative overflow-hidden">
+              <div className={`bg-gradient-to-br ${getMetricColors('orders').bgGradient} rounded-2xl p-8 border-2 ${getMetricColors('orders').border} backdrop-blur-sm relative overflow-hidden`}>
                 {yoyOrdersChange > 0 && (
                   <div className="absolute top-4 right-4 text-3xl opacity-20">📦</div>
                 )}
                 <div className="text-sm text-white/70 mb-2 uppercase tracking-wide">Total Orders</div>
-                <div className="text-4xl font-bold text-cyan-400 mb-3">
-                {data.metrics2025.total_orders.toLocaleString()}
-              </div>
-              {data.metrics2024.total_orders > 0 && (
-                  <div className={`text-lg font-semibold ${yoyOrdersChange >= 0 ? 'text-pink-400' : 'text-red-400'}`}>
+                <div className={`text-4xl font-bold ${getMetricColors('orders').textBold} mb-3`}>
+                  {data.metrics2025.total_orders.toLocaleString()}
+                </div>
+                {data.metrics2024.total_orders > 0 && (
+                  <div className={`text-lg font-semibold ${getGrowthColors(yoyOrdersChange >= 0).text}`}>
                     {formatPercent(yoyOrdersChange)} vs 2024
                   </div>
                 )}
                 <div className="text-sm text-white/70 mt-3">
                   Orders fulfilled
                 </div>
-            </div>
+              </div>
 
-              <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl p-8 border-2 border-purple-500/30 backdrop-blur-sm relative overflow-hidden">
+              <div className={`bg-gradient-to-br ${getMetricColors('aov').bgGradient} rounded-2xl p-8 border-2 ${getMetricColors('aov').border} backdrop-blur-sm relative overflow-hidden`}>
                 {yoyAOVChange > 0 && (
                   <div className="absolute top-4 right-4 text-3xl opacity-20">💰</div>
                 )}
                 <div className="text-sm text-white/70 mb-2 uppercase tracking-wide">Average Order Value</div>
-                <div className="text-4xl font-bold text-purple-400 mb-3">
-                {formatCurrency(data.metrics2025.aov)}
-              </div>
-              {data.metrics2024.aov > 0 && (
-                  <div className={`text-lg font-semibold ${yoyAOVChange >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
+                <div className={`text-4xl font-bold ${getMetricColors('aov').textBold} mb-3`}>
+                  {formatCurrency(data.metrics2025.aov)}
+                </div>
+                {data.metrics2024.aov > 0 && (
+                  <div className={`text-lg font-semibold ${getGrowthColors(yoyAOVChange >= 0).text}`}>
                     {formatPercent(yoyAOVChange)} vs 2024
                   </div>
                 )}
@@ -503,24 +504,24 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                   // Fallback: Show BFCM 2025 stats if query didn't return data
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                     <div>
-                      <div className="text-2xl font-bold text-pink-400">$14.6B</div>
+                      <div className={`text-2xl font-bold ${ColorTheme.gmv.textBold}`}>$14.6B</div>
                       <div className="text-sm text-white/70">Total GMV Processed</div>
-                      <div className="text-xs text-pink-300 mt-1">+27% YoY</div>
+                      <div className={`text-xs ${ColorTheme.growth.text} mt-1`}>+27% YoY</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-bold text-cyan-400">$5.1M</div>
+                      <div className={`text-2xl font-bold ${ColorTheme.gmv.textBold}`}>$5.1M</div>
                       <div className="text-sm text-white/70">Peak GMV per Minute</div>
-                      <div className="text-xs text-cyan-300 mt-1">12:01 PM EST</div>
+                      <div className={`text-xs ${ColorTheme.platform.accent} mt-1`}>12:01 PM EST</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-bold text-purple-400">81M+</div>
+                      <div className={`text-2xl font-bold ${ColorTheme.platform.textBold}`}>81M+</div>
                       <div className="text-sm text-white/70">Consumers</div>
-                      <div className="text-xs text-purple-300 mt-1">Worldwide</div>
+                      <div className={`text-xs ${ColorTheme.platform.accent} mt-1`}>Worldwide</div>
                     </div>
                     <div>
-                      <div className="text-2xl font-bold text-blue-400">94.9K+</div>
+                      <div className={`text-2xl font-bold ${ColorTheme.platform.textBold}`}>94.9K+</div>
                       <div className="text-sm text-white/70">Merchants</div>
-                      <div className="text-xs text-blue-300 mt-1">Best Day Ever</div>
+                      <div className={`text-xs ${ColorTheme.platform.accent} mt-1`}>Best Day Ever</div>
                     </div>
                   </div>
                 )}
@@ -569,17 +570,17 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                   {data.customerInsights.shop_pay_pct !== undefined && data.customerInsights.shop_pay_pct > 0 && (
-                    <div className="bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-2xl p-6 sm:p-8 border-2 border-cyan-500/30 backdrop-blur-sm">
+                    <div className={`bg-gradient-to-br ${ColorTheme.shopPay.bgGradient} rounded-2xl p-6 sm:p-8 border-2 ${ColorTheme.shopPay.border} backdrop-blur-sm`}>
                       <div className="text-4xl mb-3">💳</div>
                       <div className="text-sm text-white/70 mb-2 uppercase tracking-wide">Shop Pay Adoption</div>
-                      <div className="text-3xl font-bold text-cyan-400 mb-2">
+                      <div className={`text-3xl font-bold ${ColorTheme.shopPay.textBold} mb-2`}>
                         {data.customerInsights.shop_pay_pct.toFixed(1)}%
                       </div>
                       <div className="text-sm text-white/80 mb-3">
                         of orders used Shop Pay
                       </div>
                       {data.customerInsights.shop_pay_pct >= 32 && (
-                        <div className="text-xs text-cyan-300 font-semibold">
+                        <div className={`text-xs ${ColorTheme.shopPay.accent} font-semibold`}>
                           ✨ Above platform average (32%)
                         </div>
                       )}
@@ -591,10 +592,10 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                     </div>
                   )}
                   {data.channelPerformance.some(c => c.channel_type.toLowerCase() === 'pos') && (
-                    <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl p-6 sm:p-8 border-2 border-purple-500/30 backdrop-blur-sm">
+                    <div className={`bg-gradient-to-br ${ColorTheme.omnichannel.bgGradient} rounded-2xl p-6 sm:p-8 border-2 ${ColorTheme.omnichannel.border} backdrop-blur-sm`}>
                       <div className="text-4xl mb-3">🏪</div>
                       <div className="text-sm text-white/70 mb-2 uppercase tracking-wide">Omnichannel</div>
-                      <div className="text-lg font-semibold text-purple-400 mb-2">
+                      <div className={`text-lg font-semibold ${ColorTheme.omnichannel.textBold} mb-2`}>
                         POS + Online Performance
                       </div>
                       {data.channelPerformance.filter(c => c.channel_type.toLowerCase() === 'pos').map(pos => (
@@ -606,10 +607,10 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                     </div>
                   )}
                   {data.customerInsights.shop_pay_pct !== undefined && data.customerInsights.shop_pay_pct > 0 && (
-                    <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-2xl p-6 sm:p-8 border-2 border-green-500/30 backdrop-blur-sm">
+                    <div className={`bg-gradient-to-br ${ColorTheme.growth.bg} to-emerald-500/20 rounded-2xl p-6 sm:p-8 border-2 ${ColorTheme.growth.border} backdrop-blur-sm`}>
                       <div className="text-4xl mb-3">⚡</div>
                       <div className="text-sm text-white/70 mb-2 uppercase tracking-wide">Conversion Impact</div>
-                      <div className="text-lg font-semibold text-green-400 mb-2">
+                      <div className={`text-lg font-semibold ${ColorTheme.growth.textBold} mb-2`}>
                         Shop Pay Advantage
                       </div>
                       <div className="text-sm text-white/80">
@@ -630,27 +631,27 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                 Your Customer Story
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6">
-                <div className="bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-2xl p-8 border-2 border-purple-500/30 backdrop-blur-sm">
+                <div className={`bg-gradient-to-br ${getMetricColors('gmv').bgGradient} rounded-2xl p-8 border-2 ${getMetricColors('gmv').border} backdrop-blur-sm`}>
                   <div className="text-sm text-white/70 mb-2 uppercase tracking-wide">Top Customer</div>
-                  <div className="text-2xl font-bold text-pink-400 mb-2">
+                  <div className={`text-2xl font-bold ${getMetricColors('gmv').textBold} mb-2`}>
                     {formatCurrency(data.customerInsights.top_customer_spend)}
                   </div>
                   <div className="text-sm text-white/80">
                     {getTopCustomerContext(data)}
                   </div>
                 </div>
-                <div className="bg-gradient-to-br from-pink-500/20 to-cyan-500/20 rounded-2xl p-8 border-2 border-pink-500/30 backdrop-blur-sm">
+                <div className={`bg-gradient-to-br ${ColorTheme.customer.new.bg} to-${ColorTheme.customer.returning.bg} rounded-2xl p-8 border-2 ${getMetricColors('orders').border} backdrop-blur-sm`}>
                   <div className="text-sm text-white/70 mb-2 uppercase tracking-wide">Customer Mix</div>
                   <div className="flex items-center gap-4 mb-3">
                     <div className="flex-1">
-                      <div className="text-2xl font-bold text-pink-400 mb-1">
+                      <div className={`text-2xl font-bold ${ColorTheme.customer.new.text} mb-1`}>
                         {data.customerInsights.new_customers.toLocaleString()}
                       </div>
                       <div className="text-xs text-white/70">New Customers</div>
                     </div>
                     <div className="w-px h-12 bg-white/20"></div>
                     <div className="flex-1">
-                      <div className="text-2xl font-bold text-cyan-400 mb-1">
+                      <div className={`text-2xl font-bold ${ColorTheme.customer.returning.text} mb-1`}>
                         {data.customerInsights.returning_customers.toLocaleString()}
                       </div>
                       <div className="text-xs text-white/70">Returning</div>
@@ -692,11 +693,11 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                     {getCustomerContext(data)}
                   </div>
                 </div>
-                <div className="bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-2xl p-8 border-2 border-cyan-500/30 backdrop-blur-sm">
+                <div className={`bg-gradient-to-br ${ColorTheme.shopPay.bgGradient} rounded-2xl p-8 border-2 ${ColorTheme.shopPay.border} backdrop-blur-sm`}>
                   <div className="text-sm text-white/70 mb-2 uppercase tracking-wide">Shop Pay</div>
                   {data.customerInsights.shop_pay_pct !== undefined && data.customerInsights.shop_pay_pct > 0 ? (
                     <>
-                      <div className="text-2xl font-bold text-cyan-400 mb-2">
+                      <div className={`text-2xl font-bold ${ColorTheme.shopPay.textBold} mb-2`}>
                         {data.customerInsights.shop_pay_pct.toFixed(1)}%
                       </div>
                       <div className="text-sm text-white/80 mb-3">
@@ -707,7 +708,7 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                           {data.customerInsights.shop_pay_orders.toLocaleString()} orders
                         </div>
                       )}
-                      <div className="text-xs text-cyan-300 mt-2">
+                      <div className={`text-xs ${ColorTheme.shopPay.accent} mt-2`}>
                         Platform average: 32%
                       </div>
                     </>
@@ -940,16 +941,16 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                   </QueryTooltip>
                 </div>
               {getInternationalContext(data) && (
-                <div className="mb-6 p-6 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-2xl border-2 border-cyan-500/30 text-center backdrop-blur-sm">
-                  <div className="text-lg font-semibold text-cyan-400">
+                <div className={`mb-6 p-6 bg-gradient-to-br ${ColorTheme.international.bgGradient} rounded-2xl border-2 ${ColorTheme.international.border} text-center backdrop-blur-sm`}>
+                  <div className={`text-lg font-semibold ${ColorTheme.international.textBold}`}>
                     {getInternationalContext(data)}
                   </div>
                 </div>
               )}
             {data.internationalSales.cross_border_gmv > 0 ? (
-              <div className="mb-4 p-5 bg-gradient-to-br from-teal-500/20 to-cyan-500/20 rounded-lg border border-teal-500/30 backdrop-blur-sm">
+              <div className={`mb-4 p-5 bg-gradient-to-br ${ColorTheme.international.bgGradient} rounded-lg border ${ColorTheme.international.border} backdrop-blur-sm`}>
                 <div className="text-sm text-white/70 mb-1">Cross-Border GMV</div>
-                <div className="text-2xl font-bold text-teal-400">
+                <div className={`text-2xl font-bold ${ColorTheme.international.textBold}`}>
                   {formatCurrency(data.internationalSales.cross_border_gmv)}
                 </div>
                 <div className="text-sm text-white/70 mt-1">
