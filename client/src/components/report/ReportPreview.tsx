@@ -705,44 +705,44 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
             <AnimatedSection delay={1200}>
               <div className="mb-12">
                 <div className="flex items-center gap-2 mb-6 justify-center">
-                  <h2 className="text-3xl font-bold text-shopify-dark-green">
+                  <h2 className="text-3xl font-bold bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
                     🌍 Your Global Reach
-            </h2>
+                  </h2>
                   <QueryTooltip queryKey="internationalSales">
                     <span></span>
                   </QueryTooltip>
                 </div>
               {getInternationalContext(data) && (
-                <div className="mb-6 p-6 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-2xl border-2 border-blue-500/20 text-center">
-                  <div className="text-lg font-semibold text-blue-700">
+                <div className="mb-6 p-6 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-2xl border-2 border-cyan-500/30 text-center backdrop-blur-sm">
+                  <div className="text-lg font-semibold text-cyan-400">
                     {getInternationalContext(data)}
                   </div>
                 </div>
               )}
             {data.internationalSales.cross_border_gmv > 0 ? (
-              <div className="mb-4 p-5 bg-teal-50 rounded-lg border border-teal-200">
-                <div className="text-sm text-muted-foreground mb-1">Cross-Border GMV</div>
-                <div className="text-2xl font-bold text-teal-700">
+              <div className="mb-4 p-5 bg-gradient-to-br from-teal-500/20 to-cyan-500/20 rounded-lg border border-teal-500/30 backdrop-blur-sm">
+                <div className="text-sm text-white/70 mb-1">Cross-Border GMV</div>
+                <div className="text-2xl font-bold text-teal-400">
                   {formatCurrency(data.internationalSales.cross_border_gmv)}
                 </div>
-                <div className="text-sm text-muted-foreground mt-1">
+                <div className="text-sm text-white/70 mt-1">
                   {data.internationalSales.cross_border_pct.toFixed(1)}% of total sales
                 </div>
               </div>
             ) : null}
             <div className="space-y-2">
-              <h3 className="text-lg font-semibold mb-2">Top Countries by GMV</h3>
+              <h3 className="text-lg font-semibold mb-2 text-white">Top Countries by GMV</h3>
               {data.internationalSales.top_countries.map((country, index) => (
-                <div key={country.country} className="flex justify-between items-center p-3 bg-gray-50 rounded-md border border-gray-200">
+                <div key={country.country} className="flex justify-between items-center p-3 bg-gradient-to-r from-slate-800/50 to-blue-900/50 rounded-md border border-cyan-500/20 backdrop-blur-sm">
                   <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 rounded-full bg-shopify-green/20 flex items-center justify-center font-bold text-shopify-green text-xs">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-pink-500/30 to-cyan-500/30 flex items-center justify-center font-bold text-pink-400 text-xs border border-pink-500/50">
                       {index + 1}
                     </div>
-                    <div className="font-medium">{country.country}</div>
+                    <div className="font-medium text-white">{country.country}</div>
                   </div>
                   <div className="text-right">
-                    <div className="font-semibold">{formatCurrency(country.gmv)}</div>
-                    <div className="text-xs text-muted-foreground">{country.orders} orders</div>
+                    <div className="font-semibold text-cyan-400">{formatCurrency(country.gmv)}</div>
+                    <div className="text-xs text-white/70">{country.orders} orders</div>
                   </div>
                 </div>
               ))}
