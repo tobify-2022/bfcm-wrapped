@@ -332,6 +332,33 @@ GROUP BY c.email, c.first_name, c.last_name
 
 ---
 
+### ⚠️ Test 11: Conversion Metrics (Account Level - All Shops)
+**Status**: ⚠️ LIMITED - Session data available but date range issue
+**Query**: Check for session/analytics data
+**Findings**:
+- Session data available in `shopify-dw.buyer_activity.buyer_events_sessions_v1_0`
+- **BUT**: Data only starts from `2025-07-25` (Terms of Service change)
+- BFCM 2024 (Nov 28 - Dec 1, 2024) is **before** this date, so no session data available
+- For BFCM 2025, session data will be available
+- Fields available: `has_product_page_viewed`, `has_product_added_to_cart`, `has_checkout_started`, `has_checkout_completed`, `device_type`, `referrer_channel`
+- **Recommendation**: 
+  - For historical dates (before 2025-07-25): Use order-based approximation (current implementation)
+  - For future dates (after 2025-07-25): Use `buyer_events_sessions_v1_0` for accurate conversion funnel
+
+---
+
+### ✅ Test 12: Referrer Data (Account Level - All Shops)
+**Status**: ✅ PASSED - Data available
+**Query**: Check for referrer/UTM data
+**Findings**:
+- Referrer data available in `shopify-dw.buyer_activity.attributed_sessions_history`
+- Fields available: `referrer`, `referrer_url`, `referring_channel`, `referring_category`, `utm_source`, `utm_medium`, `utm_campaign`
+- Must filter for: `is_current = TRUE` AND `is_last = TRUE`
+- Can join to orders via `order_id`
+- **Recommendation**: Update `getReferrerData()` to use `attributed_sessions_history` instead of being disabled
+
+---
+
 ## Next Steps
 
 1. ✅ Test Core Metrics - COMPLETED
@@ -339,9 +366,9 @@ GROUP BY c.email, c.first_name, c.last_name
 3. ✅ Test Top Products - COMPLETED
 4. ✅ Test Channel Performance - COMPLETED
 5. ⚠️ Test Retail Metrics - NEEDS LOCATION TABLE FIX
-6. ⏳ Test Conversion Metrics (check for session data)
-7. ⚠️ Test Customer Insights - NEEDS EMAIL FIELD FIX
-8. ⏳ Test Referrer Data (check for referrer fields)
+6. ⚠️ Test Conversion Metrics - DATA AVAILABLE BUT LIMITED (sessions table starts 2025-07-25, no BFCM 2024 data)
+7. ⚠️ Test Customer Insights - NEEDS EMAIL FIELD FIX (`email_address` not `email`)
+8. ✅ Test Referrer Data - DATA AVAILABLE via `attributed_sessions_history`
 9. ✅ Test Discount Metrics - COMPLETED
 10. ✅ Test International Sales - COMPLETED
 11. ✅ Test Units Per Transaction - COMPLETED
