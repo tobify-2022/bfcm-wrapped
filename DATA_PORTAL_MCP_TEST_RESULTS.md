@@ -371,15 +371,36 @@ GROUP BY c.email, c.first_name, c.last_name
 2. ✅ Test Peak GMV - COMPLETED
 3. ✅ Test Top Products - COMPLETED
 4. ✅ Test Channel Performance - COMPLETED
-5. ⚠️ Test Retail Metrics - NEEDS LOCATION TABLE FIX
-6. ⚠️ Test Conversion Metrics - DATA AVAILABLE BUT LIMITED (sessions table starts 2025-07-25, no BFCM 2024 data)
-7. ⚠️ Test Customer Insights - NEEDS EMAIL FIELD FIX (`email_address` not `email`)
-8. ✅ Test Referrer Data - DATA AVAILABLE via `attributed_sessions_history`
+5. ✅ Test Retail Metrics - FIXED (now uses `logistics.locations_history`)
+6. ✅ Test Conversion Metrics - TESTED (data available but limited - sessions table starts 2025-07-25, no BFCM 2024 data)
+7. ✅ Test Customer Insights - FIXED (now uses `email_address` field)
+8. ✅ Test Referrer Data - FIXED (now uses `attributed_sessions_history`)
 9. ✅ Test Discount Metrics - COMPLETED
 10. ✅ Test International Sales - COMPLETED
 11. ✅ Test Units Per Transaction - COMPLETED
 12. ✅ Test Shop Breakdown - COMPLETED
-13. ⏳ Update queries based on findings (Retail Metrics, Customer Insights)
+13. ✅ Update queries based on findings - COMPLETED
+
+## Query Fixes Implemented
+
+### ✅ Retail Metrics (`getRetailMetrics`)
+- **Fixed**: Now joins with `shopify-dw.logistics.locations_history` instead of non-existent `accounts_and_administration.locations`
+- **Filter**: Uses `valid_to IS NULL` to get current location records
+- **Result**: Retail location names are now correctly retrieved
+
+### ✅ Customer Insights (`getCustomerInsights`)
+- **Fixed**: Changed `cea.email` to `cea.email_address` in `customer_email_addresses_history` join
+- **Result**: Customer email addresses are now correctly retrieved
+
+### ✅ Referrer Data (`getReferrerData`)
+- **Fixed**: Implemented query using `shopify-dw.buyer_activity.attributed_sessions_history`
+- **Filters**: Uses `is_current = TRUE` AND `is_last = TRUE` for accurate attribution
+- **Fields**: Returns `referring_channel`, `referring_category`, `referrer`, `referrer_url` with GMV and orders
+- **Result**: Referrer data is now available (was previously disabled)
+
+### ✅ Configuration Updates
+- **Added**: `shopify-dw.logistics` dataset to `quick.config.js`
+- **Added**: `shopify-dw.buyer_activity` dataset to `quick.config.js`
 
 ---
 
