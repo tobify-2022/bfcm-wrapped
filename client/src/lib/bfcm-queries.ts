@@ -1029,24 +1029,28 @@ export async function getCustomerInsights(
 ): Promise<CustomerInsights> {
   const { sqlList: shopIdList } = parseShopIds(shopIds);
   
+  const shopIdArray = Array.isArray(shopIds) ? shopIds : [shopIds];
+  const timezones = await getShopTimezones(shopIdArray);
+  const timezone = timezones.get(shopIdArray[0]);
+  
+  const dateFilterCondition = timezone
+    ? `
+        otps.order_transaction_processed_at >= TIMESTAMP('${startDate} 00:00:00', '${timezone}')
+        AND otps.order_transaction_processed_at <= TIMESTAMP('${endDate} 23:59:59', '${timezone}')
+      `
+    : `
+        otps.order_transaction_processed_at >= TIMESTAMP('${startDate} 00:00:00')
+        AND otps.order_transaction_processed_at <= TIMESTAMP('${endDate} 23:59:59')
+      `;
+  
   const query = `
-    WITH sale_period AS (
-      SELECT 
-        TIMESTAMP('${startDate} 00:00:00') as start_date,
-        TIMESTAMP('${endDate} 23:59:59') as end_date
-    ),
-    successful_orders AS (
+    WITH successful_orders AS (
       SELECT 
         otps.order_id,
         SUM(otps.amount_local) as order_amount
       FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
-      CROSS JOIN sale_period sp
-      -- shop_id is INT64 in BigQuery - compare directly (more efficient than casting)
       WHERE otps.shop_id IN (${shopIdList})
-        -- Use direct timestamp comparison for partition pruning (DW best practice)
-        AND otps.order_transaction_processed_at >= sp.start_date
-        AND otps.order_transaction_processed_at <= sp.end_date
-        -- Partition filter for performance (required per Data Portal MCP findings)
+        AND ${dateFilterCondition}
         AND otps._extracted_at >= TIMESTAMP('${startDate}')
         AND otps.order_transaction_kind = 'capture'
         AND otps.order_transaction_status = 'success'
@@ -1339,30 +1343,39 @@ export async function getChannelPerformance(
   endDate2024: string
 ): Promise<ChannelPerformance[]> {
   const { sqlList: shopIdList } = parseShopIds(shopIds);
+  const shopIdArray = Array.isArray(shopIds) ? shopIds : [shopIds];
+  
+  const timezones = await getShopTimezones(shopIdArray);
+  const timezone = timezones.get(shopIdArray[0]);
+  
+  const dateFilter2025 = timezone
+    ? `
+        otps.order_transaction_processed_at >= TIMESTAMP('${startDate2025} 00:00:00', '${timezone}')
+        AND otps.order_transaction_processed_at <= TIMESTAMP('${endDate2025} 23:59:59', '${timezone}')
+      `
+    : `
+        otps.order_transaction_processed_at >= TIMESTAMP('${startDate2025} 00:00:00')
+        AND otps.order_transaction_processed_at <= TIMESTAMP('${endDate2025} 23:59:59')
+      `;
+
+  const dateFilter2024 = timezone
+    ? `
+        otps.order_transaction_processed_at >= TIMESTAMP('${startDate2024} 00:00:00', '${timezone}')
+        AND otps.order_transaction_processed_at <= TIMESTAMP('${endDate2024} 23:59:59', '${timezone}')
+      `
+    : `
+        otps.order_transaction_processed_at >= TIMESTAMP('${startDate2024} 00:00:00')
+        AND otps.order_transaction_processed_at <= TIMESTAMP('${endDate2024} 23:59:59')
+      `;
   
   const query = `
-    WITH sale_period_2025 AS (
-      SELECT 
-        TIMESTAMP('${startDate2025} 00:00:00') as start_date,
-        TIMESTAMP('${endDate2025} 23:59:59') as end_date
-    ),
-    sale_period_2024 AS (
-      SELECT 
-        TIMESTAMP('${startDate2024} 00:00:00') as start_date,
-        TIMESTAMP('${endDate2024} 23:59:59') as end_date
-    ),
-      successful_orders_2025 AS (
+    WITH successful_orders_2025 AS (
       SELECT 
         otps.order_id,
         SUM(otps.amount_local) as order_amount
       FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
-      CROSS JOIN sale_period_2025 sp
-      -- shop_id is INT64 in BigQuery - compare directly (more efficient than casting)
       WHERE otps.shop_id IN (${shopIdList})
-        -- Use direct timestamp comparison for partition pruning (DW best practice)
-        AND otps.order_transaction_processed_at >= sp.start_date
-        AND otps.order_transaction_processed_at <= sp.end_date
-        -- Partition filter for performance (required per Data Portal MCP findings)
+        AND ${dateFilter2025}
         AND otps._extracted_at >= TIMESTAMP('${startDate2025}')
         AND otps.order_transaction_kind = 'capture'
         AND otps.order_transaction_status = 'success'
@@ -1374,13 +1387,9 @@ export async function getChannelPerformance(
         otps.order_id,
         SUM(otps.amount_local) as order_amount
       FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
-      CROSS JOIN sale_period_2024 sp
-      -- shop_id is INT64 in BigQuery - compare directly (more efficient than casting)
       WHERE otps.shop_id IN (${shopIdList})
-        -- Use direct timestamp comparison for partition pruning (DW best practice)
-        AND otps.order_transaction_processed_at >= sp.start_date
-        AND otps.order_transaction_processed_at <= sp.end_date
-        -- Partition filter for performance (required per Data Portal MCP findings)
+        AND ${dateFilter2024}
+        AND otps._extracted_at >= TIMESTAMP('${startDate2024}')
         AND otps._extracted_at >= TIMESTAMP('${startDate2024}')
         AND otps.order_transaction_kind = 'capture'
         AND otps.order_transaction_status = 'success'
@@ -1507,23 +1516,35 @@ export async function getShopBreakdown(
   endDate: string
 ): Promise<ShopBreakdown[]> {
   const { sqlList: shopIdList } = parseShopIds(shopIds);
+  const shopIdArray = Array.isArray(shopIds) ? shopIds : [shopIds];
+  
+  // Get timezones for all shops (each shop may have different timezone)
+  const timezones = await getShopTimezones(shopIdArray);
+  
+  // For shop breakdown, we need to handle each shop's timezone individually
+  // Since BigQuery doesn't support different timezones per row, we use the primary shop's timezone
+  // for the date filter (this is a reasonable approximation for multi-shop accounts)
+  const timezone = timezones.get(shopIdArray[0]);
+  
+  const dateFilterCondition = timezone
+    ? `
+        otps.order_transaction_processed_at >= TIMESTAMP('${startDate} 00:00:00', '${timezone}')
+        AND otps.order_transaction_processed_at <= TIMESTAMP('${endDate} 23:59:59', '${timezone}')
+      `
+    : `
+        otps.order_transaction_processed_at >= TIMESTAMP('${startDate} 00:00:00')
+        AND otps.order_transaction_processed_at <= TIMESTAMP('${endDate} 23:59:59')
+      `;
   
   const query = `
-    WITH sale_period AS (
-      SELECT 
-        TIMESTAMP('${startDate} 00:00:00') as start_date,
-        TIMESTAMP('${endDate} 23:59:59') as end_date
-    ),
-    successful_orders AS (
+    WITH successful_orders AS (
       SELECT 
         otps.order_id,
         otps.shop_id,
         SUM(otps.amount_local) as order_amount
       FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
-      CROSS JOIN sale_period sp
       WHERE otps.shop_id IN (${shopIdList})
-        AND otps.order_transaction_processed_at >= sp.start_date
-        AND otps.order_transaction_processed_at <= sp.end_date
+        AND ${dateFilterCondition}
         AND otps._extracted_at >= TIMESTAMP('${startDate}')
         AND otps.order_transaction_kind = 'capture'
         AND otps.order_transaction_status = 'success'
@@ -1591,22 +1612,29 @@ export async function getDiscountMetrics(
   endDate: string
 ): Promise<DiscountMetrics> {
   const { sqlList: shopIdList } = parseShopIds(shopIds);
+  const shopIdArray = Array.isArray(shopIds) ? shopIds : [shopIds];
+  
+  const timezones = await getShopTimezones(shopIdArray);
+  const timezone = timezones.get(shopIdArray[0]);
+  
+  const dateFilterCondition = timezone
+    ? `
+        otps.order_transaction_processed_at >= TIMESTAMP('${startDate} 00:00:00', '${timezone}')
+        AND otps.order_transaction_processed_at <= TIMESTAMP('${endDate} 23:59:59', '${timezone}')
+      `
+    : `
+        otps.order_transaction_processed_at >= TIMESTAMP('${startDate} 00:00:00')
+        AND otps.order_transaction_processed_at <= TIMESTAMP('${endDate} 23:59:59')
+      `;
   
   const query = `
-    WITH sale_period AS (
-      SELECT 
-        TIMESTAMP('${startDate} 00:00:00') as start_date,
-        TIMESTAMP('${endDate} 23:59:59') as end_date
-    ),
-    successful_orders AS (
+    WITH successful_orders AS (
       SELECT 
         otps.order_id,
         SUM(otps.amount_local) as order_amount
       FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
-      CROSS JOIN sale_period sp
       WHERE otps.shop_id IN (${shopIdList})
-        AND otps.order_transaction_processed_at >= sp.start_date
-        AND otps.order_transaction_processed_at <= sp.end_date
+        AND ${dateFilterCondition}
         AND otps._extracted_at >= TIMESTAMP('${startDate}')
         AND otps.order_transaction_kind = 'capture'
         AND otps.order_transaction_status = 'success'
@@ -1705,24 +1733,31 @@ export async function getInternationalSales(
   endDate: string
 ): Promise<InternationalSales> {
   const { sqlList: shopIdList } = parseShopIds(shopIds);
+  const shopIdArray = Array.isArray(shopIds) ? shopIds : [shopIds];
+  
+  const timezones = await getShopTimezones(shopIdArray);
+  const timezone = timezones.get(shopIdArray[0]);
+  
+  const dateFilterCondition = timezone
+    ? `
+        otps.order_transaction_processed_at >= TIMESTAMP('${startDate} 00:00:00', '${timezone}')
+        AND otps.order_transaction_processed_at <= TIMESTAMP('${endDate} 23:59:59', '${timezone}')
+      `
+    : `
+        otps.order_transaction_processed_at >= TIMESTAMP('${startDate} 00:00:00')
+        AND otps.order_transaction_processed_at <= TIMESTAMP('${endDate} 23:59:59')
+      `;
   
   try {
     // Get top countries
     const countryQuery = `
-      WITH sale_period AS (
-        SELECT 
-          TIMESTAMP('${startDate} 00:00:00') as start_date,
-          TIMESTAMP('${endDate} 23:59:59') as end_date
-      ),
-    successful_orders AS (
+      WITH successful_orders AS (
       SELECT 
         otps.order_id,
         SUM(otps.amount_local) as order_amount
       FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
-      CROSS JOIN sale_period sp
       WHERE otps.shop_id IN (${shopIdList})
-        AND otps.order_transaction_processed_at >= sp.start_date
-        AND otps.order_transaction_processed_at <= sp.end_date
+        AND ${dateFilterCondition}
         AND otps._extracted_at >= TIMESTAMP('${startDate}')
         AND otps.order_transaction_kind = 'capture'
         AND otps.order_transaction_status = 'success'
@@ -1797,21 +1832,28 @@ export async function getUnitsPerTransaction(
   endDate: string
 ): Promise<number> {
   const { sqlList: shopIdList } = parseShopIds(shopIds);
+  const shopIdArray = Array.isArray(shopIds) ? shopIds : [shopIds];
+  
+  const timezones = await getShopTimezones(shopIdArray);
+  const timezone = timezones.get(shopIdArray[0]);
+  
+  const dateFilterCondition = timezone
+    ? `
+        otps.order_transaction_processed_at >= TIMESTAMP('${startDate} 00:00:00', '${timezone}')
+        AND otps.order_transaction_processed_at <= TIMESTAMP('${endDate} 23:59:59', '${timezone}')
+      `
+    : `
+        otps.order_transaction_processed_at >= TIMESTAMP('${startDate} 00:00:00')
+        AND otps.order_transaction_processed_at <= TIMESTAMP('${endDate} 23:59:59')
+      `;
   
   const query = `
-    WITH sale_period AS (
-      SELECT 
-        TIMESTAMP('${startDate} 00:00:00') as start_date,
-        TIMESTAMP('${endDate} 23:59:59') as end_date
-    ),
-    successful_orders AS (
+    WITH successful_orders AS (
       SELECT DISTINCT
         otps.order_id
       FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
-      CROSS JOIN sale_period sp
       WHERE otps.shop_id IN (${shopIdList})
-        AND otps.order_transaction_processed_at >= sp.start_date
-        AND otps.order_transaction_processed_at <= sp.end_date
+        AND ${dateFilterCondition}
         AND otps._extracted_at >= TIMESTAMP('${startDate}')
         AND otps.order_transaction_kind = 'capture'
         AND otps.order_transaction_status = 'success'
@@ -1854,24 +1896,31 @@ export async function getConversionMetrics(
   endDate: string
 ): Promise<ConversionMetrics> {
   const { sqlList: shopIdList } = parseShopIds(shopIds);
+  const shopIdArray = Array.isArray(shopIds) ? shopIds : [shopIds];
+  
+  const timezones = await getShopTimezones(shopIdArray);
+  const timezone = timezones.get(shopIdArray[0]);
+  
+  const dateFilterCondition = timezone
+    ? `
+        otps.order_transaction_processed_at >= TIMESTAMP('${startDate} 00:00:00', '${timezone}')
+        AND otps.order_transaction_processed_at <= TIMESTAMP('${endDate} 23:59:59', '${timezone}')
+      `
+    : `
+        otps.order_transaction_processed_at >= TIMESTAMP('${startDate} 00:00:00')
+        AND otps.order_transaction_processed_at <= TIMESTAMP('${endDate} 23:59:59')
+      `;
   
   // Since we don't have session data, we'll estimate based on orders
   // This is an approximation - actual session data would require analytics tables
   const query = `
-    WITH sale_period AS (
-      SELECT 
-        TIMESTAMP('${startDate} 00:00:00') as start_date,
-        TIMESTAMP('${endDate} 23:59:59') as end_date
-    ),
-    successful_orders AS (
+    WITH successful_orders AS (
       SELECT 
         otps.order_id,
         SUM(otps.amount_local) as order_amount
       FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
-      CROSS JOIN sale_period sp
       WHERE otps.shop_id IN (${shopIdList})
-        AND otps.order_transaction_processed_at >= sp.start_date
-        AND otps.order_transaction_processed_at <= sp.end_date
+        AND ${dateFilterCondition}
         AND otps._extracted_at >= TIMESTAMP('${startDate}')
         AND otps.order_transaction_kind = 'capture'
         AND otps.order_transaction_status = 'success'
