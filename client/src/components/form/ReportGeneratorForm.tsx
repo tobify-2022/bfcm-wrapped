@@ -556,7 +556,7 @@ export default function ReportGeneratorForm({ onGenerate, isGenerating }: Report
                   placeholder="Search accounts..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-4 py-2 mb-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-shopify-green"
+                  className="w-full px-4 py-2 mb-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-shopify-green bg-white text-gray-900 placeholder-gray-500"
                   aria-label="Search accounts by name, account ID, or shop ID"
                 />
                 
@@ -571,7 +571,7 @@ export default function ReportGeneratorForm({ onGenerate, isGenerating }: Report
                       setSearchTerm(''); // Clear search when manually selecting
                     }
                   }}
-                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-shopify-green bg-white"
+                  className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-shopify-green bg-white text-gray-900"
                   aria-label="Select merchant account from Book of Business"
                 >
                   {filteredAccounts.length === 0 ? (
@@ -705,7 +705,7 @@ export default function ReportGeneratorForm({ onGenerate, isGenerating }: Report
                 value={manualShopId}
                 onChange={(e) => setManualShopId(e.target.value)}
                 placeholder="12345678"
-            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-shopify-green"
+            className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-shopify-green bg-white text-gray-900 placeholder-gray-500"
                 aria-label="Enter Shop ID manually"
           />
               <p className="text-xs text-muted-foreground mt-1">
@@ -722,7 +722,7 @@ export default function ReportGeneratorForm({ onGenerate, isGenerating }: Report
                 value={manualAccountName}
                 onChange={(e) => setManualAccountName(e.target.value)}
                 placeholder="LSKD"
-                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-shopify-green"
+                className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-shopify-green bg-white text-gray-900 placeholder-gray-500"
                 aria-label="Enter account or shop name (optional)"
               />
             </div>
@@ -759,7 +759,7 @@ export default function ReportGeneratorForm({ onGenerate, isGenerating }: Report
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-shopify-green"
+              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-shopify-green bg-white text-gray-900"
               aria-label="Start date for report period"
             />
           </div>
@@ -770,7 +770,7 @@ export default function ReportGeneratorForm({ onGenerate, isGenerating }: Report
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-shopify-green"
+              className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-shopify-green bg-white text-gray-900"
               aria-label="End date for report period"
             />
           </div>
