@@ -497,16 +497,16 @@ export default function ReportGeneratorForm({ onGenerate, isGenerating }: Report
 
   return (
     <div className="max-w-2xl mx-auto bg-card rounded-lg shadow-lg p-6" onKeyDown={handleKeyDown}>
-      <h2 className="text-2xl font-semibold mb-6 text-shopify-dark-green">
+      <h2 className="text-2xl font-semibold mb-6 text-white">
         Generate BFCM Report
       </h2>
 
       <div className="space-y-4">
         {/* Input Mode Toggle */}
         <div>
-          <label className="block text-sm font-medium mb-2">Select Merchant</label>
+          <label className="block text-sm font-medium mb-2 text-white">Select Merchant</label>
           <div className="flex gap-4">
-            <label className="flex items-center cursor-pointer">
+            <label className="flex items-center cursor-pointer text-white">
               <input
                 type="radio"
                 value="book"
@@ -516,7 +516,7 @@ export default function ReportGeneratorForm({ onGenerate, isGenerating }: Report
               />
               <span>My Book of Business</span>
             </label>
-            <label className="flex items-center cursor-pointer">
+            <label className="flex items-center cursor-pointer text-white">
               <input
                 type="radio"
                 value="manual"
@@ -532,20 +532,20 @@ export default function ReportGeneratorForm({ onGenerate, isGenerating }: Report
         {/* Book of Business Selector */}
         {inputMode === 'book' && (
           <div>
-            <label htmlFor="accountSelect" className="block text-sm font-medium mb-2">
+            <label htmlFor="accountSelect" className="block text-sm font-medium mb-2 text-white">
               Select Account
             </label>
             
             {isLoadingAccounts && (
-              <p className="text-sm text-muted-foreground">Loading your accounts...</p>
+              <p className="text-sm text-white">Loading your accounts...</p>
             )}
             
             {accountsError && (
-              <p className="text-sm text-red-600">Failed to load accounts. Try manual mode.</p>
+              <p className="text-sm text-red-400">Failed to load accounts. Try manual mode.</p>
             )}
             
             {accounts && accounts.length === 0 && (
-              <p className="text-sm text-amber-600">No accounts found. Try manual mode.</p>
+              <p className="text-sm text-amber-400">No accounts found. Try manual mode.</p>
             )}
             
             {accounts && accounts.length > 0 && (
@@ -604,7 +604,7 @@ export default function ReportGeneratorForm({ onGenerate, isGenerating }: Report
                     
                     {/* Shop Selection */}
                     {isLoadingShops ? (
-                      <div className="p-4 text-center text-sm text-gray-500">
+                      <div className="p-4 text-center text-sm text-white">
                         Loading shops...
                       </div>
                     ) : shopsError ? (
@@ -696,7 +696,7 @@ export default function ReportGeneratorForm({ onGenerate, isGenerating }: Report
         {inputMode === 'manual' && (
           <>
             <div>
-              <label htmlFor="manualShopId" className="block text-sm font-medium mb-2">
+              <label htmlFor="manualShopId" className="block text-sm font-medium mb-2 text-white">
                 Shop ID
           </label>
           <input
@@ -708,12 +708,12 @@ export default function ReportGeneratorForm({ onGenerate, isGenerating }: Report
             className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-shopify-green bg-white text-gray-900 placeholder-gray-500"
                 aria-label="Enter Shop ID manually"
           />
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-xs text-white/70 mt-1">
                 Enter the numeric Shop ID (find it in BigQuery or admin URL)
               </p>
             </div>
             <div>
-              <label htmlFor="manualAccountName" className="block text-sm font-medium mb-2">
+              <label htmlFor="manualAccountName" className="block text-sm font-medium mb-2 text-white">
                 Account/Shop Name (Optional)
               </label>
               <input
@@ -731,7 +731,7 @@ export default function ReportGeneratorForm({ onGenerate, isGenerating }: Report
 
           <div>
           <div className="flex items-center justify-between mb-2">
-            <label htmlFor="startDate" className="block text-sm font-medium">
+            <label htmlFor="startDate" className="block text-sm font-medium text-white">
               Date Range
             </label>
             <div className="flex gap-3">
@@ -775,10 +775,10 @@ export default function ReportGeneratorForm({ onGenerate, isGenerating }: Report
             />
           </div>
         </div>
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-xs text-white/70 mt-1">
             {Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24))} days selected
             {Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / (1000 * 60 * 60 * 24)) > 90 && (
-              <span className="text-red-600 ml-1">(Max 90 days)</span>
+              <span className="text-red-400 ml-1">(Max 90 days)</span>
             )}
           </p>
         </div>
