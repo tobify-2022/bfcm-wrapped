@@ -12,6 +12,8 @@ export interface Badge {
   emoji: string;
   gradient: string;
   unlocked: boolean;
+  tier?: 'platinum' | 'gold' | 'silver' | 'bronze'; // Premium tier for visual styling
+  icon?: string; // Optional icon image path
 }
 
 /**
@@ -35,6 +37,8 @@ export function calculateBadges(data: ReportData): Badge[] {
       emoji: '🏆',
       gradient: 'from-amber-500 via-yellow-500 to-amber-600',
       unlocked: true,
+      tier: 'platinum',
+      icon: '/assets/bags-premium.webp',
     });
   }
 
@@ -52,25 +56,29 @@ export function calculateBadges(data: ReportData): Badge[] {
 
   // Comeback Kid - 50%+ YoY growth
   if (yoyGMVChange >= 50 && data.metrics2024.total_gmv > 0) {
+    const tier = yoyGMVChange >= 200 ? 'platinum' : yoyGMVChange >= 100 ? 'gold' : 'silver';
     badges.push({
       id: 'comeback-kid',
-      title: 'Comeback Kid',
-      description: `${yoyGMVChange.toFixed(0)}% growth—incredible comeback!`,
+      title: yoyGMVChange >= 200 ? 'Rocket Ship' : yoyGMVChange >= 100 ? 'High Flyer' : 'Comeback Kid',
+      description: `${yoyGMVChange.toFixed(0)}% growth—incredible!`,
       emoji: '🚀',
       gradient: 'from-green-500 via-emerald-500 to-green-600',
       unlocked: true,
+      tier,
     });
   }
 
   // Millionaire - $1M+ GMV
   if (data.metrics2025.total_gmv >= 1000000) {
+    const tier = data.metrics2025.total_gmv >= 10000000 ? 'platinum' : data.metrics2025.total_gmv >= 5000000 ? 'gold' : 'silver';
     badges.push({
       id: 'millionaire',
-      title: 'Millionaire',
-      description: 'Crossed the $1M mark',
+      title: data.metrics2025.total_gmv >= 10000000 ? 'Diamond Elite' : data.metrics2025.total_gmv >= 5000000 ? 'Golden Status' : 'Millionaire',
+      description: `$${(data.metrics2025.total_gmv / 1000000).toFixed(1)}M in GMV`,
       emoji: '💎',
       gradient: 'from-purple-500 via-pink-500 to-purple-600',
       unlocked: true,
+      tier,
     });
   }
 

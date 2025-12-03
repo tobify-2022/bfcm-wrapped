@@ -96,10 +96,17 @@ function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-shopify-green/5 to-shopify-blue/5">
       <div className="container mx-auto px-4 py-8">
-        <header className="mb-8 text-center">
-          <h1 className="text-4xl font-bold text-shopify-dark-green mb-2">
-            🎁 BFCM Wrapped
-          </h1>
+        <header className="mb-8 text-center relative">
+          <div className="flex items-center justify-center gap-4 mb-2">
+            <img 
+              src="/assets/bag-3d.webp" 
+              alt="Shopify" 
+              className="w-16 h-16 object-contain drop-shadow-lg" 
+            />
+            <h1 className="text-4xl font-bold text-shopify-dark-green">
+              🎁 BFCM Wrapped
+            </h1>
+          </div>
           <p className="text-muted-foreground">
             Generate personalized BFCM performance reports for your merchants
           </p>

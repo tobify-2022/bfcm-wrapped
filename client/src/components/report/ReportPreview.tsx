@@ -188,8 +188,18 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
       </div>
 
       <div id="report-content" className="bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 rounded-3xl shadow-2xl overflow-hidden border border-cyan-500/20">
-        {/* Hero Section - Shopify BFCM 2025 Style */}
+        {/* Hero Section - Shopify BFCM 2025 Style with Globe */}
         <div className="bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 text-white p-12 text-center relative overflow-hidden border-b-2 border-cyan-500/30">
+          {/* Globe Background Image */}
+          <div 
+            className="absolute inset-0 bg-center bg-cover opacity-25 mix-blend-lighten"
+            style={{ 
+              backgroundImage: 'url(/assets/globe-connections.jpg)',
+              filter: 'brightness(0.7) contrast(1.3) saturate(1.2)',
+              transform: 'scale(1.1)'
+            }}
+          />
+          
           {/* Animated background effects */}
           <div className="absolute inset-0 opacity-20">
             <div className="absolute top-10 left-10 w-64 h-64 bg-pink-500 rounded-full blur-3xl animate-pulse"></div>
@@ -203,15 +213,15 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
             backgroundSize: '50px 50px'
           }}></div>
           
-          <div className="relative z-10">
-            <div className="text-6xl mb-4">🎁</div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-pink-400 via-cyan-400 to-pink-400 bg-clip-text text-transparent animate-gradient">
+          <div className="relative z-10 backdrop-blur-[1px]">
+            <div className="text-6xl mb-4 drop-shadow-lg">🎁</div>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-pink-400 via-cyan-400 to-pink-400 bg-clip-text text-transparent animate-gradient drop-shadow-2xl">
               Your BFCM 2025, Wrapped
           </h1>
-            <p className="text-xl sm:text-2xl font-light mb-2 text-white/90">
+            <p className="text-xl sm:text-2xl font-light mb-2 text-white drop-shadow-lg">
             {data.accountName}
           </p>
-            <p className="text-base sm:text-lg text-white/75">
+            <p className="text-base sm:text-lg text-white/90 drop-shadow-md">
               {new Date(data.startDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} - {new Date(data.endDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
           </p>
           </div>
@@ -269,6 +279,13 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
 
         <div className="p-4 sm:p-6 md:p-8 lg:p-12 bg-gradient-to-br from-slate-900 via-blue-900/50 to-purple-900/50">
           {/* Badges Section */}
+          {/* Elegant Section Divider */}
+          <div className="my-16 flex items-center justify-center">
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent"></div>
+            <div className="mx-4 text-4xl opacity-50">✨</div>
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-pink-500/50 to-transparent"></div>
+          </div>
+
           {badges.length > 0 && (
             <AnimatedSection delay={200}>
               <div className="mb-12">
@@ -283,6 +300,13 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
               </div>
             </AnimatedSection>
           )}
+          
+          {/* Elegant Section Divider */}
+          <div className="my-16 flex items-center justify-center">
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent"></div>
+            <div className="mx-4 text-4xl opacity-50">🎯</div>
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent"></div>
+          </div>
 
           {/* Commerce Personality */}
           {personalities.length > 0 && (
@@ -905,25 +929,37 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
           </AnimatedSection>
         )}
 
-          {/* International Sales - Enhanced */}
+          {/* International Sales - Enhanced with Globe */}
           {data.internationalSales.top_countries.length > 0 && (
             <AnimatedSection delay={1200}>
-              <div className="mb-12">
-                <div className="flex items-center gap-2 mb-6 justify-center">
-                  <h2 className="text-3xl font-bold bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
-                    🌍 Your Global Reach
-            </h2>
-                  <QueryTooltip queryKey="internationalSales">
-                    <span></span>
-                  </QueryTooltip>
-                </div>
-              {getInternationalContext(data) && (
-                <div className={`mb-6 p-6 bg-gradient-to-br ${ColorTheme.international.bgGradient} rounded-2xl border-2 ${ColorTheme.international.border} text-center backdrop-blur-sm`}>
-                  <div className={`text-lg font-semibold ${ColorTheme.international.textBold}`}>
-                    {getInternationalContext(data)}
+              <div className="mb-12 relative">
+                {/* Globe Background */}
+                <div 
+                  className="absolute inset-0 bg-center bg-contain bg-no-repeat opacity-15 pointer-events-none"
+                  style={{ 
+                    backgroundImage: 'url(/assets/globe-bfcm.webp)',
+                    filter: 'brightness(1.2) saturate(1.5)',
+                    backgroundSize: '60%',
+                    backgroundPosition: 'center 20%'
+                  }}
+                />
+                
+                <div className="relative z-10">
+                  <div className="flex items-center gap-2 mb-6 justify-center">
+                    <h2 className="text-3xl font-bold bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent drop-shadow-lg">
+                      🌍 Your Global Reach
+              </h2>
+                    <QueryTooltip queryKey="internationalSales">
+                      <span></span>
+                    </QueryTooltip>
                   </div>
-                </div>
-              )}
+                {getInternationalContext(data) && (
+                  <div className={`mb-6 p-6 bg-gradient-to-br ${ColorTheme.international.bgGradient} rounded-2xl border-2 ${ColorTheme.international.border} text-center backdrop-blur-md`}>
+                    <div className={`text-lg font-semibold ${ColorTheme.international.textBold}`}>
+                      {getInternationalContext(data)}
+                    </div>
+                  </div>
+                )}
             {data.internationalSales.cross_border_gmv > 0 ? (
               <div className={`mb-4 p-5 bg-gradient-to-br ${ColorTheme.international.bgGradient} rounded-lg border ${ColorTheme.international.border} backdrop-blur-sm`}>
                 <div className="text-sm text-white/70 mb-1">Cross-Border GMV</div>
@@ -953,6 +989,7 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                 </div>
               ))}
             </div>
+                </div>
           </div>
             </AnimatedSection>
           )}

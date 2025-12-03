@@ -784,29 +784,45 @@ export default function ReportGeneratorForm({ onGenerate, isGenerating }: Report
         </div>
 
         {generationProgress && (
-          <div className="bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 border-2 border-blue-300 p-6 rounded-lg animate-fade-in shadow-lg" role="status" aria-live="polite" aria-atomic="true">
-            <div className="flex items-center gap-4">
-              <div className="relative">
-                <div className="animate-spin rounded-full h-8 w-8 border-4 border-blue-200 border-t-blue-600" aria-hidden="true"></div>
-                <div className="absolute inset-0 animate-ping rounded-full h-8 w-8 border-2 border-blue-400 opacity-20"></div>
+          <div className="bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 border-2 border-cyan-500/50 p-8 rounded-2xl animate-fade-in shadow-2xl relative overflow-hidden" role="status" aria-live="polite" aria-atomic="true">
+            {/* Animated Globe Background */}
+            <div 
+              className="absolute inset-0 bg-center bg-cover opacity-20 animate-pulse mix-blend-lighten"
+              style={{ 
+                backgroundImage: 'url(/assets/globe-connections.jpg)',
+                filter: 'brightness(0.8) contrast(1.3)',
+                animationDuration: '4s'
+              }}
+            />
+            
+            <div className="relative z-10 flex items-center gap-6">
+              <div className="relative w-16 h-16 flex-shrink-0">
+                {/* Rotating Globe Icon */}
+                <div className="absolute inset-0 text-5xl flex items-center justify-center" style={{ animation: 'spin 8s linear infinite' }}>
+                  🌍
+                </div>
+                <div className="absolute inset-0 rounded-full border-4 border-cyan-400/30 animate-ping opacity-40" aria-hidden="true"></div>
+                <div className="absolute inset-0 rounded-full border-2 border-pink-400/30 animate-pulse" aria-hidden="true"></div>
               </div>
               <div className="flex-1">
-                <p className="text-base font-semibold text-blue-900 mb-2">
+                <p className="text-lg font-bold text-white mb-3 drop-shadow-lg">
                   {generationProgress.current}
                 </p>
-                <div className="mt-2 w-full bg-blue-200 rounded-full h-3 overflow-hidden shadow-inner" role="progressbar" aria-valuenow={generationProgress.completed} aria-valuemin={0} aria-valuemax={generationProgress.total}>
+                <div className="mt-2 w-full bg-slate-800/50 rounded-full h-4 overflow-hidden shadow-inner border border-cyan-500/30" role="progressbar" aria-valuenow={generationProgress.completed} aria-valuemin={0} aria-valuemax={generationProgress.total}>
                   <div
-                    className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 h-3 rounded-full transition-all duration-500 ease-out relative"
+                    className="bg-gradient-to-r from-cyan-500 via-blue-500 to-pink-500 h-4 rounded-full transition-all duration-500 ease-out relative"
                     style={{ width: `${(generationProgress.completed / generationProgress.total) * 100}%` }}
                   >
-                    <div className="absolute inset-0 bg-white/30 animate-pulse"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/40 via-white/20 to-transparent animate-shimmer" style={{
+                      backgroundSize: '200% 100%',
+                    }}></div>
                   </div>
                 </div>
-                <div className="flex justify-between items-center mt-2">
-                  <p className="text-xs text-blue-700 font-medium">
+                <div className="flex justify-between items-center mt-3">
+                  <p className="text-sm text-cyan-300 font-medium">
                     {generationProgress.completed} of {generationProgress.total} queries completed
                   </p>
-                  <p className="text-xs text-blue-600 font-semibold">
+                  <p className="text-sm text-pink-300 font-bold">
                     {Math.round((generationProgress.completed / generationProgress.total) * 100)}%
                   </p>
                 </div>
