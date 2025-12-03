@@ -17,6 +17,8 @@ import {
   ShopBreakdown,
   DiscountMetrics,
   InternationalSales,
+  ProductPair,
+  TopCustomer,
 } from '@/lib/bfcm-queries';
 
 export interface QueryMetadata {
@@ -43,6 +45,8 @@ export interface ReportData {
   discountMetrics: DiscountMetrics;
   internationalSales: InternationalSales;
   unitsPerTransaction: number;
+  productPairs: ProductPair[];
+  topCustomers: TopCustomer[];
   queries: {
     metrics2025?: QueryMetadata;
     metrics2024?: QueryMetadata;
@@ -58,6 +62,8 @@ export interface ReportData {
     discountMetrics?: QueryMetadata;
     internationalSales?: QueryMetadata;
     unitsPerTransaction?: QueryMetadata;
+    productPairs?: QueryMetadata;
+    topCustomers?: QueryMetadata;
   };
 }
 

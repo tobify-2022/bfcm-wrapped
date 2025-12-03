@@ -724,6 +724,256 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
             </AnimatedSection>
           )}
 
+          {/* Checkout Conversion Funnel */}
+          {data.conversionMetrics.total_sessions > 0 && (
+            <AnimatedSection delay={1100}>
+              <div className="mb-12">
+                <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-center bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                  🛒 Checkout Funnel Performance
+                </h2>
+                <div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-3xl p-8 border-2 border-cyan-500/30 backdrop-blur-sm">
+                  {/* Funnel Visualization */}
+                  <div className="max-w-3xl mx-auto">
+                    {/* Total Sessions */}
+                    <div className="text-center mb-6">
+                      <div className="inline-block bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-2xl px-8 py-6 border-2 border-cyan-500/40">
+                        <div className="text-4xl font-bold text-cyan-400 mb-2">
+                          {data.conversionMetrics.total_sessions.toLocaleString()}
+                        </div>
+                        <div className="text-sm text-white/70 uppercase tracking-wide">Total Sessions</div>
+                      </div>
+                    </div>
+
+                    {/* Arrow & Add to Cart Rate */}
+                    <div className="text-center mb-4">
+                      <div className="text-cyan-400 text-3xl mb-2">↓</div>
+                      <div className="text-white/70 text-sm">
+                        {((data.conversionMetrics.sessions_with_cart / data.conversionMetrics.total_sessions) * 100).toFixed(1)}% add to cart
+                      </div>
+                    </div>
+
+                    {/* Sessions with Cart */}
+                    <div className="text-center mb-6">
+                      <div className="inline-block bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-2xl px-8 py-6 border-2 border-purple-500/40">
+                        <div className="text-4xl font-bold text-purple-400 mb-2">
+                          {data.conversionMetrics.sessions_with_cart.toLocaleString()}
+                        </div>
+                        <div className="text-sm text-white/70 uppercase tracking-wide">Sessions with Cart Adds</div>
+                      </div>
+                    </div>
+
+                    {/* Arrow & Cart to Checkout Rate */}
+                    <div className="text-center mb-4">
+                      <div className="text-purple-400 text-3xl mb-2">↓</div>
+                      <div className="text-white/70 text-sm">
+                        {data.conversionMetrics.cart_to_checkout_rate.toFixed(1)}% proceed to checkout
+                      </div>
+                    </div>
+
+                    {/* Sessions at Checkout */}
+                    <div className="text-center mb-6">
+                      <div className="inline-block bg-gradient-to-br from-pink-500/20 to-purple-500/20 rounded-2xl px-8 py-6 border-2 border-pink-500/40">
+                        <div className="text-4xl font-bold text-pink-400 mb-2">
+                          {data.conversionMetrics.sessions_with_checkout.toLocaleString()}
+                        </div>
+                        <div className="text-sm text-white/70 uppercase tracking-wide">Sessions Reached Checkout</div>
+                      </div>
+                    </div>
+
+                    {/* Arrow & Conversion Rate */}
+                    <div className="text-center mb-4">
+                      <div className="text-pink-400 text-3xl mb-2">↓</div>
+                      <div className="text-white/70 text-sm">
+                        {data.conversionMetrics.conversion_rate > 0 
+                          ? `${data.conversionMetrics.conversion_rate.toFixed(2)}% complete purchase`
+                          : 'final conversion'
+                        }
+                      </div>
+                    </div>
+
+                    {/* Completed Orders */}
+                    <div className="text-center mb-8">
+                      <div className="inline-block bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-2xl px-8 py-6 border-2 border-green-500/40">
+                        <div className="text-4xl font-bold text-green-400 mb-2">
+                          {data.metrics2025.total_orders.toLocaleString()}
+                        </div>
+                        <div className="text-sm text-white/70 uppercase tracking-wide">Completed Orders</div>
+                      </div>
+                    </div>
+
+                    {/* Overall Conversion Rate - Big Highlight */}
+                    <div className="text-center bg-gradient-to-r from-cyan-500/20 to-pink-500/20 rounded-2xl p-6 border-2 border-cyan-500/40 mb-6">
+                      <div className="text-sm text-white/70 mb-2 uppercase tracking-wide">Overall Conversion Rate</div>
+                      <div className="text-5xl font-bold bg-gradient-to-r from-cyan-400 to-pink-400 bg-clip-text text-transparent">
+                        {data.conversionMetrics.conversion_rate.toFixed(2)}%
+                      </div>
+                    </div>
+
+                    {/* Device Breakdown */}
+                    {(data.conversionMetrics.mobile_sessions > 0 || data.conversionMetrics.desktop_sessions > 0) && (
+                      <div className="grid grid-cols-2 gap-4 mt-6">
+                        <div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-xl p-4 border border-cyan-500/30">
+                          <div className="text-xs text-white/60 mb-2 uppercase">📱 Mobile</div>
+                          <div className="text-2xl font-bold text-cyan-400">
+                            {data.conversionMetrics.mobile_sessions.toLocaleString()}
+                          </div>
+                          <div className="text-xs text-white/70 mt-1">
+                            {((data.conversionMetrics.mobile_sessions / data.conversionMetrics.total_sessions) * 100).toFixed(1)}% of sessions
+                          </div>
+                        </div>
+                        <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-xl p-4 border border-purple-500/30">
+                          <div className="text-xs text-white/60 mb-2 uppercase">🖥️ Desktop</div>
+                          <div className="text-2xl font-bold text-purple-400">
+                            {data.conversionMetrics.desktop_sessions.toLocaleString()}
+                          </div>
+                          <div className="text-xs text-white/70 mt-1">
+                            {((data.conversionMetrics.desktop_sessions / data.conversionMetrics.total_sessions) * 100).toFixed(1)}% of sessions
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </AnimatedSection>
+          )}
+
+          {/* Frequently Bought Together */}
+          {data.productPairs && data.productPairs.length > 0 && (
+            <AnimatedSection delay={1200}>
+              <div className="mb-12">
+                <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-center bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
+                  🛍️ Frequently Bought Together
+                </h2>
+                <div className="bg-gradient-to-br from-pink-500/10 to-purple-500/10 rounded-3xl p-8 border-2 border-pink-500/30 backdrop-blur-sm">
+                  <div className="space-y-4">
+                    {data.productPairs.slice(0, 5).map((pair, index) => (
+                      <div key={index} className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-2xl p-6 border border-purple-500/30">
+                        <div className="flex items-center gap-4">
+                          <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg">
+                            {index + 1}
+                          </div>
+                          <div className="flex-1">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
+                              <div className="text-white font-medium text-sm">
+                                {pair.product_a}
+                              </div>
+                              <div className="text-center text-pink-400 text-xl font-bold hidden sm:block">
+                                +
+                              </div>
+                              <div className="text-white font-medium text-sm">
+                                {pair.product_b}
+                              </div>
+                            </div>
+                            <div className="mt-3 text-sm text-white/70">
+                              <span className="inline-flex items-center gap-2 bg-purple-500/20 px-3 py-1 rounded-full">
+                                <span className="text-purple-400 font-semibold">
+                                  {pair.times_purchased_together}x
+                                </span>
+                                <span>purchased together</span>
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {data.productPairs.length > 5 && (
+                    <div className="mt-6 text-center text-sm text-white/60">
+                      +{data.productPairs.length - 5} more product pairs
+                    </div>
+                  )}
+                </div>
+              </div>
+            </AnimatedSection>
+          )}
+
+          {/* Top VIP Customers */}
+          {data.topCustomers && data.topCustomers.length > 0 && (
+            <AnimatedSection delay={1300}>
+              <div className="mb-12">
+                <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-center bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">
+                  👑 Top VIP Customers
+                </h2>
+                <div className="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 rounded-3xl p-8 border-2 border-yellow-500/30 backdrop-blur-sm overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-yellow-500/30">
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-white/70 uppercase tracking-wide">Rank</th>
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-white/70 uppercase tracking-wide">Customer ID</th>
+                        <th className="text-right py-3 px-4 text-sm font-semibold text-white/70 uppercase tracking-wide">Total Spend</th>
+                        <th className="text-center py-3 px-4 text-sm font-semibold text-white/70 uppercase tracking-wide">Orders</th>
+                        <th className="text-right py-3 px-4 text-sm font-semibold text-white/70 uppercase tracking-wide">AOV</th>
+                        <th className="text-center py-3 px-4 text-sm font-semibold text-white/70 uppercase tracking-wide">Segment</th>
+                        <th className="text-center py-3 px-4 text-sm font-semibold text-white/70 uppercase tracking-wide">Value Tier</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data.topCustomers.map((customer, index) => {
+                        // Determine badge color based on rank
+                        const rankColors = [
+                          'from-yellow-500 to-orange-500', // Gold - 1st
+                          'from-gray-300 to-gray-400',     // Silver - 2nd
+                          'from-amber-600 to-amber-700',   // Bronze - 3rd
+                          'from-blue-500 to-blue-600',     // Rest
+                        ];
+                        const rankColor = rankColors[Math.min(index, 3)];
+
+                        // Segment badge colors
+                        const segmentColors = {
+                          'VIP': 'bg-purple-500/30 text-purple-300 border-purple-500/50',
+                          'Repeat Buyer': 'bg-cyan-500/30 text-cyan-300 border-cyan-500/50',
+                          'One-time Buyer': 'bg-blue-500/30 text-blue-300 border-blue-500/50',
+                        };
+
+                        // Value tier badge colors
+                        const tierColors = {
+                          'High Value': 'bg-green-500/30 text-green-300 border-green-500/50',
+                          'Medium Value': 'bg-yellow-500/30 text-yellow-300 border-yellow-500/50',
+                          'Low Value': 'bg-gray-500/30 text-gray-300 border-gray-500/50',
+                        };
+
+                        return (
+                          <tr key={customer.customer_id} className="border-b border-yellow-500/10 hover:bg-yellow-500/5 transition-colors">
+                            <td className="py-4 px-4">
+                              <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${rankColor} flex items-center justify-center text-white font-bold text-sm`}>
+                                {index + 1}
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 text-white/80 font-mono text-xs">
+                              {customer.customer_id.substring(0, 12)}...
+                            </td>
+                            <td className="py-4 px-4 text-right">
+                              <div className="text-yellow-400 font-bold text-lg">
+                                {formatCurrency(customer.total_spend)}
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 text-center text-white/80 font-semibold">
+                              {customer.order_count}
+                            </td>
+                            <td className="py-4 px-4 text-right text-white/80">
+                              {formatCurrency(customer.avg_order_value)}
+                            </td>
+                            <td className="py-4 px-4 text-center">
+                              <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold border ${segmentColors[customer.customer_segment]}`}>
+                                {customer.customer_segment}
+                              </span>
+                            </td>
+                            <td className="py-4 px-4 text-center">
+                              <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold border ${tierColors[customer.value_tier]}`}>
+                                {customer.value_tier}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </AnimatedSection>
+          )}
+
         {/* Retail Metrics */}
         {data.retailMetrics.retail_orders > 0 && (
           <AnimatedSection delay={1000}>

@@ -17,6 +17,8 @@ import {
   getDiscountMetrics,
   getInternationalSales,
   getUnitsPerTransaction,
+  getProductPairs,
+  getTopCustomers,
   getCoreMetricsQuery,
   getPeakGMVQuery,
   getTopProductsQuery,
@@ -296,6 +298,18 @@ export default function ReportGeneratorForm({ onGenerate, isGenerating }: Report
               fn: () => getUnitsPerTransaction(finalShopIds, startDate, endDate),
               queryFn: () => getUnitsPerTransactionQuery(finalShopIds, startDate, endDate)
             },
+            { 
+              label: 'Product Pairs', 
+              key: 'productPairs',
+              fn: () => getProductPairs(finalShopIds, startDate, endDate, 3),
+              queryFn: () => 'SELECT product_a, product_b, times_purchased_together FROM product_pairs ORDER BY times_purchased_together DESC LIMIT 10'
+            },
+            { 
+              label: 'Top Customers', 
+              key: 'topCustomers',
+              fn: () => getTopCustomers(finalShopIds, startDate, endDate, 10),
+              queryFn: () => 'SELECT customer_id, total_spend, order_count, avg_order_value, customer_segment, value_tier FROM customer_metrics ORDER BY total_spend DESC LIMIT 10'
+            },
           ];
           
           // Build queries object for tooltips
@@ -450,6 +464,14 @@ export default function ReportGeneratorForm({ onGenerate, isGenerating }: Report
         }
       }
 
+      // Extract product pairs and top customers from results
+      // Type guard to safely extract the values
+      const productPairsResult = results[results.length - 2];
+      const topCustomersResult = results[results.length - 1];
+      
+      const productPairs: any[] = productPairsResult?.status === 'fulfilled' && Array.isArray(productPairsResult.value) ? productPairsResult.value : [];
+      const topCustomers: any[] = topCustomersResult?.status === 'fulfilled' && Array.isArray(topCustomersResult.value) ? topCustomersResult.value : [];
+      
       const reportData: ReportData = {
         accountName: finalAccountName,
         shopIds: finalShopIds,
@@ -469,6 +491,8 @@ export default function ReportGeneratorForm({ onGenerate, isGenerating }: Report
         discountMetrics,
         internationalSales,
         unitsPerTransaction,
+        productPairs,
+        topCustomers,
         queries: queriesMetadata,
       };
 
