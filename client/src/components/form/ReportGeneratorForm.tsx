@@ -587,18 +587,18 @@ export default function ReportGeneratorForm({ onGenerate, isGenerating }: Report
                 
                 {selectedAccount && (
                   <div className="mt-3 space-y-3">
-                    <div className="p-4 bg-shopify-green/5 border border-shopify-green/20 rounded-md">
+                    <div className="p-4 bg-white border border-shopify-green/30 rounded-md">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <p className="font-semibold text-lg text-shopify-dark-green mb-1">
+                          <p className="font-semibold text-lg text-gray-900 mb-1">
                             {selectedAccount.account_name}
                           </p>
-                          <div className="space-y-1 text-sm text-gray-600">
+                          <div className="space-y-1 text-sm text-gray-700">
                             <p>GMV (L365D): <span className="font-semibold text-shopify-green">{formatGMV(selectedAccount.gmv_usd_l365d)}</span></p>
-                            <p>Total Shops: <span className="font-semibold">{selectedAccount.shop_count}</span></p>
+                            <p>Total Shops: <span className="font-semibold text-gray-900">{selectedAccount.shop_count}</span></p>
                           </div>
                         </div>
-                        <div className="ml-4 text-2xl">✓</div>
+                        <div className="ml-4 text-2xl text-shopify-green">✓</div>
                       </div>
                     </div>
                     
@@ -617,15 +617,15 @@ export default function ReportGeneratorForm({ onGenerate, isGenerating }: Report
                         </p>
                       </div>
                     ) : shops && shops.length > 0 ? (
-                      <div className="border rounded-md p-4 bg-white">
-                        <label className="block text-sm font-medium mb-3">
+                      <div className="border rounded-md p-4 bg-white text-gray-900">
+                        <label className="block text-sm font-medium mb-3 text-gray-900">
                           Select Shops ({selectedShopIds.size} selected)
                         </label>
                         <div className="space-y-2 max-h-60 overflow-y-auto">
                           {shops.map((shop) => (
                             <label
                               key={shop.shop_id}
-                              className="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer"
+                              className="flex items-center p-2 hover:bg-gray-100 rounded cursor-pointer"
                             >
                               <input
                                 type="checkbox"
@@ -643,13 +643,13 @@ export default function ReportGeneratorForm({ onGenerate, isGenerating }: Report
                               />
                               <div className="flex-1">
                                 <div className="flex items-center gap-2">
-                                  <span className="font-mono text-sm">{shop.shop_id}</span>
+                                  <span className="font-mono text-sm text-gray-900">{shop.shop_id}</span>
                                   {shop.is_primary && (
                                     <span className="text-xs bg-shopify-green text-white px-2 py-0.5 rounded">Primary</span>
                                   )}
                                 </div>
                                 {shop.gmv_usd_l365d > 0 && (
-                                  <span className="text-xs text-gray-500">
+                                  <span className="text-xs text-gray-600">
                                     {formatGMV(shop.gmv_usd_l365d)} GMV
                                   </span>
                                 )}
@@ -665,7 +665,7 @@ export default function ReportGeneratorForm({ onGenerate, isGenerating }: Report
                                 setSelectedShopIds(new Set(shops.map(s => s.shop_id)));
                               }
                             }}
-                            className="text-xs text-shopify-green hover:text-shopify-dark-green underline"
+                            className="text-xs text-shopify-green hover:text-shopify-dark-green underline font-medium"
                           >
                             Select All
                           </button>
@@ -673,7 +673,7 @@ export default function ReportGeneratorForm({ onGenerate, isGenerating }: Report
                           <button
                             type="button"
                             onClick={() => setSelectedShopIds(new Set())}
-                            className="text-xs text-shopify-green hover:text-shopify-dark-green underline"
+                            className="text-xs text-shopify-green hover:text-shopify-dark-green underline font-medium"
                           >
                             Clear All
                           </button>
