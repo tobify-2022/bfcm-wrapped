@@ -226,6 +226,76 @@ export async function verifyShopData(shopId: string): Promise<{
 }
 
 // ============================================================================
+// HELPER FUNCTIONS - TIMEZONE SUPPORT
+// ============================================================================
+
+/**
+ * Get shop timezone(s) for accurate local time filtering
+ * Returns a map of shop_id -> iana_timezone
+ */
+async function getShopTimezones(shopIds: string | string[]): Promise<Map<string, string>> {
+  const shopIdArray = Array.isArray(shopIds) ? shopIds : [shopIds];
+  const { sqlList: shopIdList } = parseShopIds(shopIdArray);
+  
+  const query = `
+    SELECT 
+      shop_id,
+      iana_timezone
+    FROM \`shopify-dw.accounts_and_administration.shop_profile_current\` 
+    WHERE shop_id IN (${shopIdList})
+      AND iana_timezone IS NOT NULL
+  `;
+  
+  try {
+    const result = await quickAPI.queryBigQuery(query);
+    const timezoneMap = new Map<string, string>();
+    
+    for (const row of result.rows) {
+      timezoneMap.set(String(row.shop_id), String(row.iana_timezone));
+    }
+    
+    console.log(`🌍 Retrieved timezones for ${timezoneMap.size} shop(s):`, 
+      Array.from(timezoneMap.entries()).map(([id, tz]) => `${id}=${tz}`).join(', ')
+    );
+    
+    return timezoneMap;
+  } catch (error) {
+    console.error('❌ Error fetching shop timezones:', error);
+    // Return empty map - queries will fall back to UTC
+    return new Map();
+  }
+}
+
+/**
+ * Build timezone-aware date filter SQL for a single shop
+ * If timezone is available, converts dates to shop local time
+ * Otherwise falls back to UTC
+ * 
+ * Note: Currently inline in each function for flexibility.
+ * This helper is here for future reference/refactoring.
+ */
+// function buildDateFilter(
+//   startDate: string,
+//   endDate: string,
+//   timezone: string | undefined,
+//   timestampColumn: string = 'order_transaction_processed_at'
+// ): string {
+//   if (timezone) {
+//     // Use shop's local timezone
+//     return `
+//       ${timestampColumn} >= TIMESTAMP('${startDate} 00:00:00', '${timezone}')
+//       AND ${timestampColumn} <= TIMESTAMP('${endDate} 23:59:59', '${timezone}')
+//     `;
+//   } else {
+//     // Fallback to UTC
+//     return `
+//       ${timestampColumn} >= TIMESTAMP('${startDate} 00:00:00')
+//       AND ${timestampColumn} <= TIMESTAMP('${endDate} 23:59:59')
+//     `;
+//   }
+// }
+
+// ============================================================================
 // QUERY FUNCTIONS
 // ============================================================================
 
@@ -271,23 +341,41 @@ export async function getCoreMetrics(
   const { ids: shopIdInts, sqlList: shopIdList } = parseShopIds(shopIds);
   const shopIdArray = Array.isArray(shopIds) ? shopIds : [shopIds];
 
+  // Get timezone(s) for shop(s)
+  const timezones = await getShopTimezones(shopIdArray);
+  
+  // For single shop, use its timezone. For multiple shops, use first shop's timezone as representative
+  // (multi-shop with different timezones is complex - we use one timezone for the entire date range)
+  const primaryShopId = shopIdArray[0];
+  const timezone = timezones.get(primaryShopId);
+  
+  if (timezone) {
+    console.log(`🌍 Using timezone: ${timezone} for date filtering`);
+  } else {
+    console.log(`⚠️ No timezone found, using UTC`);
+  }
+
+  // Build timezone-aware date filter
+  const dateFilterCondition = timezone
+    ? `
+        otps.order_transaction_processed_at >= TIMESTAMP('${startDate} 00:00:00', '${timezone}')
+        AND otps.order_transaction_processed_at <= TIMESTAMP('${endDate} 23:59:59', '${timezone}')
+      `
+    : `
+        otps.order_transaction_processed_at >= TIMESTAMP('${startDate} 00:00:00')
+        AND otps.order_transaction_processed_at <= TIMESTAMP('${endDate} 23:59:59')
+      `;
+
   const query = `
-    WITH sale_period AS (
-      SELECT 
-        TIMESTAMP('${startDate} 00:00:00') as start_date,
-        TIMESTAMP('${endDate} 23:59:59') as end_date
-    ),
-    order_totals AS (
+    WITH order_totals AS (
       SELECT 
         otps.order_id,
         SUM(otps.amount_local) as order_amount
       FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
-      CROSS JOIN sale_period sp
       -- shop_id is INT64 in BigQuery - compare directly (more efficient than casting)
       WHERE otps.shop_id IN (${shopIdList})
-        -- Use direct timestamp comparison for partition pruning (DW best practice)
-        AND otps.order_transaction_processed_at >= sp.start_date
-        AND otps.order_transaction_processed_at <= sp.end_date
+        -- Timezone-aware date filtering
+        AND ${dateFilterCondition}
         -- Partition filter for performance (required per Data Portal MCP findings)
         AND otps._extracted_at >= TIMESTAMP('${startDate}')
         AND otps.order_transaction_kind = 'capture'
@@ -303,7 +391,8 @@ export async function getCoreMetrics(
   `;
 
   const shopIdDisplay = shopIdArray.length === 1 ? shopIdInts[0] : `${shopIdArray.length} shops`;
-  console.log(`🔍 Querying core metrics for ${shopIdDisplay}, period=${startDate} to ${endDate}`);
+  const tzDisplay = timezone ? ` (TZ: ${timezone})` : ' (UTC)';
+  console.log(`🔍 Querying core metrics for ${shopIdDisplay}, period=${startDate} to ${endDate}${tzDisplay}`);
   
   try {
     // Diagnostic query (only for single shop to avoid complexity)
@@ -625,24 +714,32 @@ export async function getPeakGMV(
   endDate: string
 ): Promise<PeakGMV | null> {
   const { sqlList: shopIdList } = parseShopIds(shopIds);
+  const shopIdArray = Array.isArray(shopIds) ? shopIds : [shopIds];
+  
+  // Get timezone for accurate local time filtering
+  const timezones = await getShopTimezones(shopIdArray);
+  const timezone = timezones.get(shopIdArray[0]);
+  
+  const dateFilterCondition = timezone
+    ? `
+        otps.order_transaction_processed_at >= TIMESTAMP('${startDate} 00:00:00', '${timezone}')
+        AND otps.order_transaction_processed_at <= TIMESTAMP('${endDate} 23:59:59', '${timezone}')
+      `
+    : `
+        otps.order_transaction_processed_at >= TIMESTAMP('${startDate} 00:00:00')
+        AND otps.order_transaction_processed_at <= TIMESTAMP('${endDate} 23:59:59')
+      `;
   
   const query = `
-    WITH sale_period AS (
-      SELECT 
-        TIMESTAMP('${startDate} 00:00:00') as start_date,
-        TIMESTAMP('${endDate} 23:59:59') as end_date
-    ),
-    minute_aggregates AS (
+    WITH minute_aggregates AS (
       SELECT 
         TIMESTAMP_TRUNC(otps.order_transaction_processed_at, MINUTE) as minute,
         SUM(otps.amount_local) as gmv_per_minute
       FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
-      CROSS JOIN sale_period sp
       -- shop_id is INT64 in BigQuery - compare directly (more efficient than casting)
       WHERE otps.shop_id IN (${shopIdList})
-        -- Use direct timestamp comparison for partition pruning (DW best practice)
-        AND otps.order_transaction_processed_at >= sp.start_date
-        AND otps.order_transaction_processed_at <= sp.end_date
+        -- Timezone-aware date filtering
+        AND ${dateFilterCondition}
         -- Partition filter for performance (required per Data Portal MCP findings)
         AND otps._extracted_at >= TIMESTAMP('${startDate}')
         AND otps.order_transaction_kind = 'capture'
@@ -684,23 +781,31 @@ export async function getTopProducts(
   endDate: string
 ): Promise<ProductPerformance[]> {
   const { sqlList: shopIdList } = parseShopIds(shopIds);
+  const shopIdArray = Array.isArray(shopIds) ? shopIds : [shopIds];
+  
+  // Get timezone for accurate local time filtering
+  const timezones = await getShopTimezones(shopIdArray);
+  const timezone = timezones.get(shopIdArray[0]);
+  
+  const dateFilterCondition = timezone
+    ? `
+        otps.order_transaction_processed_at >= TIMESTAMP('${startDate} 00:00:00', '${timezone}')
+        AND otps.order_transaction_processed_at <= TIMESTAMP('${endDate} 23:59:59', '${timezone}')
+      `
+    : `
+        otps.order_transaction_processed_at >= TIMESTAMP('${startDate} 00:00:00')
+        AND otps.order_transaction_processed_at <= TIMESTAMP('${endDate} 23:59:59')
+      `;
   
   const query = `
-    WITH sale_period AS (
-      SELECT 
-        TIMESTAMP('${startDate} 00:00:00') as start_date,
-        TIMESTAMP('${endDate} 23:59:59') as end_date
-    ),
-    successful_orders AS (
+    WITH successful_orders AS (
       SELECT DISTINCT
         otps.order_id
       FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
-      CROSS JOIN sale_period sp
       -- shop_id is INT64 in BigQuery - compare directly (more efficient than casting)
       WHERE otps.shop_id IN (${shopIdList})
-        -- Use direct timestamp comparison for partition pruning (DW best practice)
-        AND otps.order_transaction_processed_at >= sp.start_date
-        AND otps.order_transaction_processed_at <= sp.end_date
+        -- Timezone-aware date filtering
+        AND ${dateFilterCondition}
         -- Partition filter for performance (required per Data Portal MCP findings)
         AND otps._extracted_at >= TIMESTAMP('${startDate}')
         AND otps.order_transaction_kind = 'capture'
