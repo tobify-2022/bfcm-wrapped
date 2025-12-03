@@ -134,6 +134,23 @@ export interface TrafficAnalysis {
   }>;
 }
 
+export interface ProductPair {
+  product_a: string;
+  product_b: string;
+  product_a_id: string;
+  product_b_id: string;
+  times_purchased_together: number;
+}
+
+export interface TopCustomer {
+  customer_id: string;
+  total_spend: number;
+  order_count: number;
+  avg_order_value: number;
+  customer_segment: 'One-time Buyer' | 'Repeat Buyer' | 'VIP';
+  value_tier: 'High Value' | 'Medium Value' | 'Low Value';
+}
+
 // ============================================================================
 // HELPER FUNCTIONS
 // ============================================================================
@@ -1887,8 +1904,9 @@ export async function getUnitsPerTransaction(
 }
 
 /**
- * Enhanced conversion funnel using available order data
- * Estimates funnel stages based on order creation and processing
+ * Checkout conversion funnel using actual session data
+ * Uses storefront_sessions_summary_v4 for accurate funnel metrics
+ * Data source: shopify-dw.buyer_activity.storefront_sessions_summary_v4
  */
 export async function getConversionMetrics(
   shopIds: string | string[],
@@ -1901,68 +1919,101 @@ export async function getConversionMetrics(
   const timezones = await getShopTimezones(shopIdArray);
   const timezone = timezones.get(shopIdArray[0]);
   
-  const dateFilterCondition = timezone
-    ? `
-        otps.order_transaction_processed_at >= TIMESTAMP('${startDate} 00:00:00', '${timezone}')
-        AND otps.order_transaction_processed_at <= TIMESTAMP('${endDate} 23:59:59', '${timezone}')
-      `
-    : `
-        otps.order_transaction_processed_at >= TIMESTAMP('${startDate} 00:00:00')
-        AND otps.order_transaction_processed_at <= TIMESTAMP('${endDate} 23:59:59')
-      `;
-  
-  // Since we don't have session data, we'll estimate based on orders
-  // This is an approximation - actual session data would require analytics tables
   const query = `
-    WITH successful_orders AS (
+    WITH shop_timezones AS (
       SELECT 
-        otps.order_id,
-        SUM(otps.amount_local) as order_amount
-      FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
-      WHERE otps.shop_id IN (${shopIdList})
-        AND ${dateFilterCondition}
-        AND otps._extracted_at >= TIMESTAMP('${startDate}')
-        AND otps.order_transaction_kind = 'capture'
-        AND otps.order_transaction_status = 'success'
-        AND NOT otps.is_test
-      GROUP BY otps.order_id
+        shop_id,
+        iana_timezone
+      FROM \`shopify-dw.accounts_and_administration.shop_profile_current\`
+      WHERE shop_id IN (${shopIdList})
     ),
-    order_details AS (
+    
+    checkout_funnel AS (
       SELECT 
-        o.order_id,
-        o.shop_id
-      FROM \`shopify-dw.merchant_sales.orders\` o
-      INNER JOIN successful_orders so ON o.order_id = so.order_id
-      WHERE o.shop_id IN (${shopIdList})
-        AND NOT o.is_deleted
-        AND NOT o.is_cancelled
-        AND o.is_test = FALSE
+        -- Total sessions
+        COUNT(DISTINCT sss.session_id) as total_sessions,
+        
+        -- Sessions with cart adds
+        COUNT(DISTINCT CASE 
+          WHEN sss.product_added_to_cart_count > 0 
+          THEN sss.session_id 
+        END) as sessions_with_cart_adds,
+        
+        -- Sessions that reached checkout
+        COUNT(DISTINCT CASE 
+          WHEN sss.has_checkout_started 
+          THEN sss.session_id 
+        END) as sessions_reached_checkout,
+        
+        -- Sessions that completed checkout
+        COUNT(DISTINCT CASE 
+          WHEN sss.has_checkout_completed 
+          THEN sss.session_id 
+        END) as sessions_completed_checkout,
+        
+        -- Mobile vs desktop
+        COUNT(DISTINCT CASE 
+          WHEN sss.client_user_agent.device_type IN ('Mobile', 'Tablet')
+          THEN sss.session_id 
+        END) as mobile_sessions,
+        
+        COUNT(DISTINCT CASE 
+          WHEN sss.client_user_agent.device_type = 'Desktop'
+          THEN sss.session_id 
+        END) as desktop_sessions
+        
+      FROM \`shopify-dw.buyer_activity.storefront_sessions_summary_v4\` sss
+      CROSS JOIN (SELECT MIN(iana_timezone) as tz FROM shop_timezones) st
+      WHERE sss.shop_id IN (${shopIdList})
+        ${timezone 
+          ? `AND sss.first_event_at >= TIMESTAMP('${startDate} 00:00:00', st.tz)
+             AND sss.first_event_at <= TIMESTAMP('${endDate} 23:59:59', st.tz)`
+          : `AND sss.first_event_at >= TIMESTAMP('${startDate} 00:00:00')
+             AND sss.first_event_at <= TIMESTAMP('${endDate} 23:59:59')`
+        }
     )
+    
     SELECT 
-      COUNT(DISTINCT od.order_id) as total_orders
-    FROM order_details od
+      total_sessions,
+      sessions_with_cart_adds,
+      sessions_reached_checkout,
+      sessions_completed_checkout,
+      mobile_sessions,
+      desktop_sessions,
+      
+      -- Conversion rates at each stage
+      SAFE_DIVIDE(sessions_with_cart_adds, total_sessions) * 100 as add_to_cart_rate,
+      SAFE_DIVIDE(sessions_reached_checkout, sessions_with_cart_adds) * 100 as cart_to_checkout_rate,
+      SAFE_DIVIDE(sessions_completed_checkout, sessions_reached_checkout) * 100 as checkout_completion_rate,
+      SAFE_DIVIDE(sessions_completed_checkout, total_sessions) * 100 as overall_conversion_rate
+      
+    FROM checkout_funnel
   `;
   
   try {
     const result = await quickAPI.queryBigQuery(query);
-    const totalOrders = result.rows.length > 0 ? Number(result.rows[0].total_orders || 0) : 0;
+    if (result.rows.length === 0) {
+      console.warn('No session data found for conversion metrics');
+      return {
+        total_sessions: 0,
+        sessions_with_cart: 0,
+        sessions_with_checkout: 0,
+        cart_to_checkout_rate: 0,
+        mobile_sessions: 0,
+        desktop_sessions: 0,
+        conversion_rate: 0,
+      };
+    }
     
-    // Estimate sessions based on typical e-commerce conversion rates (2-3% average)
-    // This is a rough approximation since we don't have actual session data
-    const estimatedSessions = totalOrders > 0 ? Math.round(totalOrders / 0.025) : 0; // Assume 2.5% conversion rate
-    const estimatedSessionsWithCart = Math.round(estimatedSessions * 0.15); // ~15% add to cart rate
-    const estimatedSessionsWithCheckout = Math.round(estimatedSessions * 0.05); // ~5% reach checkout
-    
+    const row = result.rows[0];
     return {
-      total_sessions: estimatedSessions,
-      sessions_with_cart: estimatedSessionsWithCart,
-      sessions_with_checkout: estimatedSessionsWithCheckout,
-      cart_to_checkout_rate: estimatedSessionsWithCart > 0 
-        ? (estimatedSessionsWithCheckout / estimatedSessionsWithCart) * 100 
-        : 0,
-      mobile_sessions: Math.round(estimatedSessions * 0.6), // Estimate 60% mobile
-      desktop_sessions: Math.round(estimatedSessions * 0.4), // Estimate 40% desktop
-      conversion_rate: estimatedSessions > 0 ? (totalOrders / estimatedSessions) * 100 : 0,
+      total_sessions: Number(row.total_sessions || 0),
+      sessions_with_cart: Number(row.sessions_with_cart_adds || 0),
+      sessions_with_checkout: Number(row.sessions_reached_checkout || 0),
+      cart_to_checkout_rate: Number(row.cart_to_checkout_rate || 0),
+      mobile_sessions: Number(row.mobile_sessions || 0),
+      desktop_sessions: Number(row.desktop_sessions || 0),
+      conversion_rate: Number(row.overall_conversion_rate || 0),
     };
   } catch (error) {
     console.error('Error fetching conversion metrics:', error);
@@ -1975,5 +2026,213 @@ export async function getConversionMetrics(
       desktop_sessions: 0,
       conversion_rate: 0,
     };
+  }
+}
+
+/**
+ * Get frequently bought together products
+ * Finds product pairs that are commonly purchased in the same order
+ * Data source: shopify-dw.merchant_sales.line_items
+ */
+export async function getProductPairs(
+  shopIds: string | string[],
+  startDate: string,
+  endDate: string,
+  minCoOccurrence: number = 3
+): Promise<ProductPair[]> {
+  const { sqlList: shopIdList } = parseShopIds(shopIds);
+  const shopIdArray = Array.isArray(shopIds) ? shopIds : [shopIds];
+  
+  const timezones = await getShopTimezones(shopIdArray);
+  const timezone = timezones.get(shopIdArray[0]);
+  
+  const query = `
+    WITH shop_timezones AS (
+      SELECT 
+        shop_id,
+        iana_timezone
+      FROM \`shopify-dw.accounts_and_administration.shop_profile_current\`
+      WHERE shop_id IN (${shopIdList})
+    ),
+    
+    successful_orders AS (
+      SELECT DISTINCT
+        otps.order_id
+      FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
+      CROSS JOIN (SELECT MIN(iana_timezone) as tz FROM shop_timezones) st
+      WHERE otps.shop_id IN (${shopIdList})
+        ${timezone 
+          ? `AND otps.order_transaction_processed_at >= TIMESTAMP('${startDate} 00:00:00', st.tz)
+             AND otps.order_transaction_processed_at <= TIMESTAMP('${endDate} 23:59:59', st.tz)`
+          : `AND otps.order_transaction_processed_at >= TIMESTAMP('${startDate} 00:00:00')
+             AND otps.order_transaction_processed_at <= TIMESTAMP('${endDate} 23:59:59')`
+        }
+        AND otps._extracted_at >= TIMESTAMP('${startDate}')
+        AND otps.order_transaction_kind = 'capture'
+        AND otps.order_transaction_status = 'success'
+        AND NOT otps.is_test
+    ),
+    
+    order_products AS (
+      SELECT 
+        li.order_id,
+        li.product_title,
+        li.product_id
+      FROM \`shopify-dw.merchant_sales.line_items\` li
+      INNER JOIN successful_orders so ON li.order_id = so.order_id
+      WHERE li.shop_id IN (${shopIdList})
+        AND li.product_title IS NOT NULL
+        AND li.product_id IS NOT NULL
+    ),
+    
+    product_pairs AS (
+      SELECT 
+        op1.product_title as product_a,
+        op2.product_title as product_b,
+        CAST(op1.product_id AS STRING) as product_a_id,
+        CAST(op2.product_id AS STRING) as product_b_id,
+        COUNT(DISTINCT op1.order_id) as times_purchased_together
+      FROM order_products op1
+      INNER JOIN order_products op2 
+        ON op1.order_id = op2.order_id 
+        AND op1.product_id < op2.product_id  -- Avoid duplicates (A,B) and (B,A)
+      GROUP BY op1.product_title, op2.product_title, op1.product_id, op2.product_id
+      HAVING times_purchased_together >= ${minCoOccurrence}
+    )
+    
+    SELECT 
+      product_a,
+      product_b,
+      product_a_id,
+      product_b_id,
+      times_purchased_together
+    FROM product_pairs
+    ORDER BY times_purchased_together DESC
+    LIMIT 10
+  `;
+  
+  try {
+    const result = await quickAPI.queryBigQuery(query);
+    return result.rows.map((row: any) => ({
+      product_a: String(row.product_a || ''),
+      product_b: String(row.product_b || ''),
+      product_a_id: String(row.product_a_id || ''),
+      product_b_id: String(row.product_b_id || ''),
+      times_purchased_together: Number(row.times_purchased_together || 0),
+    }));
+  } catch (error) {
+    console.error('Error fetching product pairs:', error);
+    return [];
+  }
+}
+
+/**
+ * Get top customers with segmentation and spend analysis
+ * Returns both summary metrics and detailed top customer list
+ * Data source: shopify-dw.merchant_sales.orders, money_products.order_transactions_payments_summary
+ */
+export async function getTopCustomers(
+  shopIds: string | string[],
+  startDate: string,
+  endDate: string,
+  limit: number = 10
+): Promise<TopCustomer[]> {
+  const { sqlList: shopIdList } = parseShopIds(shopIds);
+  const shopIdArray = Array.isArray(shopIds) ? shopIds : [shopIds];
+  
+  const timezones = await getShopTimezones(shopIdArray);
+  const timezone = timezones.get(shopIdArray[0]);
+  
+  const query = `
+    WITH shop_timezones AS (
+      SELECT 
+        shop_id,
+        iana_timezone
+      FROM \`shopify-dw.accounts_and_administration.shop_profile_current\`
+      WHERE shop_id IN (${shopIdList})
+    ),
+    
+    successful_orders AS (
+      SELECT 
+        otps.order_id,
+        SUM(otps.amount_local) as order_amount
+      FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
+      CROSS JOIN (SELECT MIN(iana_timezone) as tz FROM shop_timezones) st
+      WHERE otps.shop_id IN (${shopIdList})
+        ${timezone 
+          ? `AND otps.order_transaction_processed_at >= TIMESTAMP('${startDate} 00:00:00', st.tz)
+             AND otps.order_transaction_processed_at <= TIMESTAMP('${endDate} 23:59:59', st.tz)`
+          : `AND otps.order_transaction_processed_at >= TIMESTAMP('${startDate} 00:00:00')
+             AND otps.order_transaction_processed_at <= TIMESTAMP('${endDate} 23:59:59')`
+        }
+        AND otps._extracted_at >= TIMESTAMP('${startDate}')
+        AND otps.order_transaction_kind = 'capture'
+        AND otps.order_transaction_status = 'success'
+        AND NOT otps.is_test
+      GROUP BY otps.order_id
+    ),
+    
+    customer_orders AS (
+      SELECT 
+        o.customer_id,
+        o.order_id,
+        o.created_at,
+        so.order_amount
+      FROM \`shopify-dw.merchant_sales.orders\` o
+      INNER JOIN successful_orders so ON o.order_id = so.order_id
+      WHERE o.shop_id IN (${shopIdList})
+        AND o.customer_id IS NOT NULL
+        AND NOT o.is_deleted
+        AND NOT o.is_cancelled
+        AND o.is_test = FALSE
+    ),
+    
+    customer_metrics AS (
+      SELECT 
+        customer_id,
+        COUNT(DISTINCT order_id) as order_count,
+        SUM(order_amount) as total_spend,
+        AVG(order_amount) as avg_order_value,
+        -- Customer segment
+        CASE 
+          WHEN COUNT(DISTINCT order_id) = 1 THEN 'One-time Buyer'
+          WHEN COUNT(DISTINCT order_id) = 2 THEN 'Repeat Buyer'
+          WHEN COUNT(DISTINCT order_id) >= 3 THEN 'VIP'
+        END as customer_segment,
+        -- Value tier
+        CASE 
+          WHEN SUM(order_amount) >= 500 THEN 'High Value'
+          WHEN SUM(order_amount) >= 200 THEN 'Medium Value'
+          ELSE 'Low Value'
+        END as value_tier
+      FROM customer_orders
+      GROUP BY customer_id
+    )
+    
+    SELECT 
+      CAST(customer_id AS STRING) as customer_id,
+      total_spend,
+      order_count,
+      avg_order_value,
+      customer_segment,
+      value_tier
+    FROM customer_metrics
+    ORDER BY total_spend DESC
+    LIMIT ${limit}
+  `;
+  
+  try {
+    const result = await quickAPI.queryBigQuery(query);
+    return result.rows.map((row: any) => ({
+      customer_id: String(row.customer_id || ''),
+      total_spend: Number(row.total_spend || 0),
+      order_count: Number(row.order_count || 0),
+      avg_order_value: Number(row.avg_order_value || 0),
+      customer_segment: String(row.customer_segment || 'One-time Buyer') as 'One-time Buyer' | 'Repeat Buyer' | 'VIP',
+      value_tier: String(row.value_tier || 'Low Value') as 'High Value' | 'Medium Value' | 'Low Value',
+    }));
+  } catch (error) {
+    console.error('Error fetching top customers:', error);
+    return [];
   }
 }
