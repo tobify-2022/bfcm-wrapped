@@ -218,22 +218,30 @@ function buildReplacements(data: ReportData): Record<string, string> {
     // Customer Insights
     new_customers: formatNumber(data.customerInsights.new_customers),
     returning_customers: formatNumber(data.customerInsights.returning_customers),
-    total_customers: formatNumber(data.customerInsights.total_customers),
-    returning_customer_pct: formatPercent(data.customerInsights.returning_customer_pct),
-    new_customer_pct: formatPercent(data.customerInsights.new_customer_pct),
+    total_customers: formatNumber(data.customerInsights.total_customers || (data.customerInsights.new_customers + data.customerInsights.returning_customers)),
+    returning_customer_pct: formatPercent(
+      data.customerInsights.total_customers && data.customerInsights.total_customers > 0
+        ? (data.customerInsights.returning_customers / data.customerInsights.total_customers) * 100
+        : 0
+    ),
+    new_customer_pct: formatPercent(
+      data.customerInsights.total_customers && data.customerInsights.total_customers > 0
+        ? (data.customerInsights.new_customers / data.customerInsights.total_customers) * 100
+        : 0
+    ),
     top_customer_spend: formatCurrency(data.customerInsights.top_customer_spend),
     top_customer_orders: String(data.customerInsights.top_customer_orders),
     
     // Shop Pay
-    shop_pay_orders: formatNumber(data.customerInsights.shop_pay_orders),
-    shop_pay_pct: formatPercent(data.customerInsights.shop_pay_pct),
+    shop_pay_orders: formatNumber(data.customerInsights.shop_pay_orders || 0),
+    shop_pay_pct: formatPercent(data.customerInsights.shop_pay_pct || 0),
     
     // Channel Performance (Top channel)
     ...buildChannelReplacements(data.channelPerformance),
     
     // Retail Metrics
-    retail_gmv: formatCurrency(data.retailMetrics.total_retail_gmv),
-    retail_orders: formatNumber(data.retailMetrics.total_retail_orders),
+    retail_gmv: formatCurrency(data.retailMetrics.retail_gmv),
+    retail_orders: formatNumber(data.retailMetrics.retail_orders),
     retail_aov: formatCurrency(data.retailMetrics.retail_aov),
     top_location: data.retailMetrics.top_location || 'N/A',
     
@@ -250,20 +258,20 @@ function buildReplacements(data: ReportData): Record<string, string> {
     ),
     
     // Discount Metrics
-    discounted_gmv: formatCurrency(data.discountMetrics.total_discounted_gmv),
-    full_price_gmv: formatCurrency(data.discountMetrics.total_full_price_gmv),
-    discount_pct: formatPercent(data.discountMetrics.discounted_percentage),
+    discounted_gmv: formatCurrency(data.discountMetrics.total_discounted_sales),
+    full_price_gmv: formatCurrency(data.discountMetrics.total_full_price_sales),
+    discount_pct: formatPercent(data.discountMetrics.discounted_sales_pct),
     
     // International
-    international_gmv: formatCurrency(data.internationalSales.total_international_gmv),
-    international_pct: formatPercent(data.internationalSales.international_percentage),
+    international_gmv: formatCurrency(data.internationalSales.cross_border_gmv),
+    international_pct: formatPercent(data.internationalSales.cross_border_pct),
     
     // Units Per Transaction
     upt: String(data.unitsPerTransaction.toFixed(2)),
     
     // Referrer
-    top_referrer: data.referrerData.data.top_referrer || 'Direct',
-    referrer_gmv: formatCurrency(data.referrerData.data.referrer_gmv),
+    top_referrer: data.referrerData.top_referrer || 'Direct',
+    referrer_gmv: formatCurrency(data.referrerData.referrer_gmv),
     
     // Multi-Store Data
     ...buildMultiStoreReplacements(data.shopBreakdown),

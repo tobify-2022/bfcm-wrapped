@@ -97,6 +97,15 @@ export default function ReportGeneratorForm({ onGenerate, isGenerating }: Report
     staleTime: 5 * 60 * 1000,
   });
 
+  // Debug: Log accounts when they change
+  useEffect(() => {
+    if (accounts) {
+      console.log('📋 Accounts loaded in UI:', accounts.length, 'accounts');
+      console.log('📋 Selected account:', selectedAccount?.account_name || 'None');
+      console.log('📋 Input mode:', inputMode);
+    }
+  }, [accounts, selectedAccount, inputMode]);
+
   // Fetch shops for selected account
   const { data: shops, isLoading: isLoadingShops, error: shopsError } = useQuery({
     queryKey: ['account-shops', selectedAccount?.account_id],
@@ -471,7 +480,7 @@ export default function ReportGeneratorForm({ onGenerate, isGenerating }: Report
       
       const productPairs: any[] = productPairsResult?.status === 'fulfilled' && Array.isArray(productPairsResult.value) ? productPairsResult.value : [];
       const topCustomers: any[] = topCustomersResult?.status === 'fulfilled' && Array.isArray(topCustomersResult.value) ? topCustomersResult.value : [];
-      
+
       const reportData: ReportData = {
         accountName: finalAccountName,
         shopIds: finalShopIds,
@@ -561,15 +570,15 @@ export default function ReportGeneratorForm({ onGenerate, isGenerating }: Report
             </label>
             
             {isLoadingAccounts && (
-              <p className="text-sm text-white">Loading your accounts...</p>
+              <p className="text-sm text-white font-medium">Loading your accounts...</p>
             )}
             
             {accountsError && (
-              <p className="text-sm text-red-400">Failed to load accounts. Try manual mode.</p>
+              <p className="text-sm text-red-300 font-medium">Failed to load accounts. Try manual mode.</p>
             )}
             
             {accounts && accounts.length === 0 && (
-              <p className="text-sm text-amber-400">No accounts found. Try manual mode.</p>
+              <p className="text-sm text-amber-300 font-medium">No accounts found. Try manual mode.</p>
             )}
             
             {accounts && accounts.length > 0 && (
@@ -626,21 +635,21 @@ export default function ReportGeneratorForm({ onGenerate, isGenerating }: Report
                       </div>
                     </div>
                     
-                    {/* Shop Selection */}
-                    {isLoadingShops ? (
-                      <div className="p-4 text-center text-sm text-white">
-                        Loading shops...
-                      </div>
-                    ) : shopsError ? (
-                      <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-                        <p className="text-sm text-red-600 mb-1">
-                          Failed to load shops. Please try again or use manual Shop ID mode.
-                        </p>
-                        <p className="text-xs text-red-500">
-                          Error: {shopsError instanceof Error ? shopsError.message : 'Unknown error'}
-                        </p>
-                      </div>
-                    ) : shops && shops.length > 0 ? (
+                {/* Shop Selection */}
+                {isLoadingShops ? (
+                  <div className="p-4 text-center text-sm text-white font-medium bg-slate-800/50 border border-cyan-500/30 rounded-md">
+                    Loading shops...
+                  </div>
+                ) : shopsError ? (
+                  <div className="p-3 bg-red-900/30 border border-red-500 rounded-md">
+                    <p className="text-sm text-red-200 font-medium mb-1">
+                      Failed to load shops. Please try again or use manual Shop ID mode.
+                    </p>
+                    <p className="text-xs text-red-300">
+                      Error: {shopsError instanceof Error ? shopsError.message : 'Unknown error'}
+                    </p>
+                  </div>
+                ) : shops && shops.length > 0 ? (
                       <div className="border rounded-md p-4 bg-white text-gray-900">
                         <label className="block text-sm font-medium mb-3 text-gray-900">
                           Select Shops ({selectedShopIds.size} selected)
