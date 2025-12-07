@@ -250,7 +250,15 @@ export async function verifyShopData(shopId: string): Promise<{
  * Get shop timezone(s) for accurate local time filtering
  * Returns a map of shop_id -> iana_timezone
  */
-async function getShopTimezones(shopIds: string | string[]): Promise<Map<string, string>> {
+async function getShopTimezones(_shopIds: string | string[]): Promise<Map<string, string>> {
+  // TEMPORARY FIX: iana_timezone field not available in production
+  // Returning empty map to force UTC fallback for all queries
+  // TODO: Investigate correct timezone field in shop_profile_current
+  
+  console.log(`⚠️ Timezone feature temporarily disabled - using UTC for all queries`);
+  return new Map();
+  
+  /* ORIGINAL CODE - DISABLED UNTIL TIMEZONE FIELD IS CONFIRMED
   const shopIdArray = Array.isArray(shopIds) ? shopIds : [shopIds];
   const { sqlList: shopIdList } = parseShopIds(shopIdArray);
   
@@ -281,6 +289,7 @@ async function getShopTimezones(shopIds: string | string[]): Promise<Map<string,
     // Return empty map - queries will fall back to UTC
     return new Map();
   }
+  */
 }
 
 /**
@@ -1154,10 +1163,8 @@ export async function getCustomerInsights(
         COUNT(DISTINCT CASE WHEN otps.payment_gateway_names LIKE '%shop_pay%' OR otps.payment_gateway_names LIKE '%Shop Pay%' THEN otps.order_id END) as shop_pay_orders,
         COUNT(DISTINCT otps.order_id) as total_orders
       FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
-      CROSS JOIN sale_period sp
       WHERE otps.shop_id IN (${shopIdList})
-        AND otps.order_transaction_processed_at >= sp.start_date
-        AND otps.order_transaction_processed_at <= sp.end_date
+        AND ${dateFilterCondition}
         AND otps._extracted_at >= TIMESTAMP('${startDate}')
         AND otps.order_transaction_kind = 'capture'
         AND otps.order_transaction_status = 'success'
@@ -1426,10 +1433,8 @@ export async function getChannelPerformance(
           ELSE 'online'
         END as channel_type
       FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
-      CROSS JOIN sale_period_2025 sp
       WHERE otps.shop_id IN (${shopIdList})
-        AND otps.order_transaction_processed_at >= sp.start_date
-        AND otps.order_transaction_processed_at <= sp.end_date
+        AND ${dateFilter2025}
         AND otps._extracted_at >= TIMESTAMP('${startDate2025}')
         AND otps.order_transaction_kind = 'capture'
         AND otps.order_transaction_status = 'success'
@@ -1449,10 +1454,8 @@ export async function getChannelPerformance(
           ELSE 'online'
         END as channel_type
       FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
-      CROSS JOIN sale_period_2024 sp
       WHERE otps.shop_id IN (${shopIdList})
-        AND otps.order_transaction_processed_at >= sp.start_date
-        AND otps.order_transaction_processed_at <= sp.end_date
+        AND ${dateFilter2024}
         AND otps._extracted_at >= TIMESTAMP('${startDate2024}')
         AND otps.order_transaction_kind = 'capture'
         AND otps.order_transaction_status = 'success'
@@ -1916,19 +1919,10 @@ export async function getConversionMetrics(
   const { sqlList: shopIdList } = parseShopIds(shopIds);
   const shopIdArray = Array.isArray(shopIds) ? shopIds : [shopIds];
   
-  const timezones = await getShopTimezones(shopIdArray);
-  const timezone = timezones.get(shopIdArray[0]);
+  await getShopTimezones(shopIdArray); // Timezone temporarily disabled - always uses UTC
   
   const query = `
-    WITH shop_timezones AS (
-      SELECT 
-        shop_id,
-        iana_timezone
-      FROM \`shopify-dw.accounts_and_administration.shop_profile_current\`
-      WHERE shop_id IN (${shopIdList})
-    ),
-    
-    checkout_funnel AS (
+    WITH checkout_funnel AS (
       SELECT 
         -- Total sessions
         COUNT(DISTINCT sss.session_id) as total_sessions,
@@ -1963,14 +1957,9 @@ export async function getConversionMetrics(
         END) as desktop_sessions
         
       FROM \`shopify-dw.buyer_activity.storefront_sessions_summary_v4\` sss
-      CROSS JOIN (SELECT MIN(iana_timezone) as tz FROM shop_timezones) st
       WHERE sss.shop_id IN (${shopIdList})
-        ${timezone 
-          ? `AND sss.first_event_at >= TIMESTAMP('${startDate} 00:00:00', st.tz)
-             AND sss.first_event_at <= TIMESTAMP('${endDate} 23:59:59', st.tz)`
-          : `AND sss.first_event_at >= TIMESTAMP('${startDate} 00:00:00')
-             AND sss.first_event_at <= TIMESTAMP('${endDate} 23:59:59')`
-        }
+        AND sss.first_event_at >= TIMESTAMP('${startDate} 00:00:00')
+        AND sss.first_event_at <= TIMESTAMP('${endDate} 23:59:59')
     )
     
     SELECT 
@@ -2043,30 +2032,16 @@ export async function getProductPairs(
   const { sqlList: shopIdList } = parseShopIds(shopIds);
   const shopIdArray = Array.isArray(shopIds) ? shopIds : [shopIds];
   
-  const timezones = await getShopTimezones(shopIdArray);
-  const timezone = timezones.get(shopIdArray[0]);
+  await getShopTimezones(shopIdArray); // Timezone temporarily disabled - always uses UTC
   
   const query = `
-    WITH shop_timezones AS (
-      SELECT 
-        shop_id,
-        iana_timezone
-      FROM \`shopify-dw.accounts_and_administration.shop_profile_current\`
-      WHERE shop_id IN (${shopIdList})
-    ),
-    
-    successful_orders AS (
+    WITH successful_orders AS (
       SELECT DISTINCT
         otps.order_id
       FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
-      CROSS JOIN (SELECT MIN(iana_timezone) as tz FROM shop_timezones) st
       WHERE otps.shop_id IN (${shopIdList})
-        ${timezone 
-          ? `AND otps.order_transaction_processed_at >= TIMESTAMP('${startDate} 00:00:00', st.tz)
-             AND otps.order_transaction_processed_at <= TIMESTAMP('${endDate} 23:59:59', st.tz)`
-          : `AND otps.order_transaction_processed_at >= TIMESTAMP('${startDate} 00:00:00')
-             AND otps.order_transaction_processed_at <= TIMESTAMP('${endDate} 23:59:59')`
-        }
+        AND otps.order_transaction_processed_at >= TIMESTAMP('${startDate} 00:00:00')
+        AND otps.order_transaction_processed_at <= TIMESTAMP('${endDate} 23:59:59')
         AND otps._extracted_at >= TIMESTAMP('${startDate}')
         AND otps.order_transaction_kind = 'capture'
         AND otps.order_transaction_status = 'success'
@@ -2140,31 +2115,17 @@ export async function getTopCustomers(
   const { sqlList: shopIdList } = parseShopIds(shopIds);
   const shopIdArray = Array.isArray(shopIds) ? shopIds : [shopIds];
   
-  const timezones = await getShopTimezones(shopIdArray);
-  const timezone = timezones.get(shopIdArray[0]);
+  await getShopTimezones(shopIdArray); // Timezone temporarily disabled - always uses UTC
   
   const query = `
-    WITH shop_timezones AS (
-      SELECT 
-        shop_id,
-        iana_timezone
-      FROM \`shopify-dw.accounts_and_administration.shop_profile_current\`
-      WHERE shop_id IN (${shopIdList})
-    ),
-    
-    successful_orders AS (
+    WITH successful_orders AS (
       SELECT 
         otps.order_id,
         SUM(otps.amount_local) as order_amount
       FROM \`shopify-dw.money_products.order_transactions_payments_summary\` otps
-      CROSS JOIN (SELECT MIN(iana_timezone) as tz FROM shop_timezones) st
       WHERE otps.shop_id IN (${shopIdList})
-        ${timezone 
-          ? `AND otps.order_transaction_processed_at >= TIMESTAMP('${startDate} 00:00:00', st.tz)
-             AND otps.order_transaction_processed_at <= TIMESTAMP('${endDate} 23:59:59', st.tz)`
-          : `AND otps.order_transaction_processed_at >= TIMESTAMP('${startDate} 00:00:00')
-             AND otps.order_transaction_processed_at <= TIMESTAMP('${endDate} 23:59:59')`
-        }
+        AND otps.order_transaction_processed_at >= TIMESTAMP('${startDate} 00:00:00')
+        AND otps.order_transaction_processed_at <= TIMESTAMP('${endDate} 23:59:59')
         AND otps._extracted_at >= TIMESTAMP('${startDate}')
         AND otps.order_transaction_kind = 'capture'
         AND otps.order_transaction_status = 'success'
