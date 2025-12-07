@@ -1,0 +1,17 @@
+Generate a comprehensive sales analysis report for this Shopify merchant:
+
+🎯 MERCHANT INFO:
+- Merchant Name: [INSERT NAME]
+- Shop ID: [INSERT SHOP ID]
+- Currency: [INSERT: USD, GBP, EUR, CAD, etc.]
+- Sales Event Dates: [INSERT: "November 18-25, 2025"]
+
+📋 Follow all requirements in README.md (in this workspace) including:
+- Revenue formulas (Shopify Admin calculations)
+- Required data tables and fields
+- Section order (12 sections)
+- PDF-friendly styling
+- No estimates/fake data - query Shopify Data Platform only
+
+Use the example reports (Reptiles_By_Post, Loop_Earplugs) as templates.
+
