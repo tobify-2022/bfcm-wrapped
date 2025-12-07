@@ -38,8 +38,36 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
     }
   }, [data]);
 
+  const [isGeneratingSlides, setIsGeneratingSlides] = useState(false);
+  const [slidesUrl, setSlidesUrl] = useState<string | null>(null);
+
   const handleDownloadPDF = () => {
     generatePDF(data);
+  };
+
+  const handleGenerateSlides = async () => {
+    setIsGeneratingSlides(true);
+    try {
+      const { generateBFCMSlides, previewReplacements } = await import('@/lib/revenue-mcp-slides');
+      
+      // Preview replacements in console (for debugging)
+      previewReplacements(data);
+      
+      // Generate slides
+      const result = await generateBFCMSlides(data);
+      
+      if (result.success) {
+        setSlidesUrl(result.presentation_url);
+        window.open(result.presentation_url, '_blank');
+      } else {
+        alert(`Failed to generate slides: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error generating slides:', error);
+      alert('Failed to generate slides. Please check console for details.');
+    } finally {
+      setIsGeneratingSlides(false);
+    }
   };
 
   const formatCurrency = (value: number) => {
@@ -178,13 +206,43 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
             </p>
           )}
         </div>
+        <div className="flex gap-3">
         <button
           onClick={handleDownloadPDF}
-          className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-cyan-500 text-white px-6 py-3 rounded-full hover:shadow-lg hover:shadow-pink-500/50 transition-all font-semibold border border-white/20"
+            className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-cyan-500 text-white px-6 py-3 rounded-full hover:shadow-lg hover:shadow-pink-500/50 transition-all font-semibold border border-white/20"
         >
           <Download className="w-4 h-4" />
           Download PDF
         </button>
+          
+          <button
+            onClick={handleGenerateSlides}
+            disabled={isGeneratingSlides}
+            className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white px-6 py-3 rounded-full hover:shadow-lg hover:shadow-blue-500/50 transition-all font-semibold border border-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Generate Google Slides presentation from this report"
+          >
+            {isGeneratingSlides ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Generating...
+              </>
+            ) : slidesUrl ? (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                View Slides
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                Generate Slides
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       <div id="report-content" className="bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 rounded-3xl shadow-2xl overflow-hidden border border-cyan-500/20">
@@ -1198,7 +1256,7 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                   <div className="flex items-center gap-2 mb-6 justify-center">
                     <h2 className="text-3xl font-bold bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent drop-shadow-lg">
                       🌍 Your Global Reach
-              </h2>
+            </h2>
                     <QueryTooltip queryKey="internationalSales">
                       <span></span>
                     </QueryTooltip>
