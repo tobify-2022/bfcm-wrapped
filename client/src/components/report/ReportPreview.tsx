@@ -48,6 +48,7 @@ import ExecutiveSummary from './ExecutiveSummary';
 import PerformanceScorecard from './PerformanceScorecard';
 import RecommendationsSection from './RecommendationsSection';
 import SlideMode from './SlideMode';
+import BrandHeader from './BrandHeader';
 import { 
   getMetricsTransition, 
   getCustomerTransition,
@@ -360,13 +361,13 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
             Present
           </button>
           
-          <button
-            onClick={handleDownloadPDF}
+        <button
+          onClick={handleDownloadPDF}
             className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-cyan-500 text-white px-6 py-3 rounded-full hover:shadow-lg hover:shadow-pink-500/50 transition-all font-semibold border border-white/20"
-          >
-            <Download className="w-4 h-4" />
-            Download PDF
-          </button>
+        >
+          <Download className="w-4 h-4" />
+          Download PDF
+        </button>
           
           <button
             onClick={handleGenerateSlides}
@@ -399,44 +400,13 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
       </div>
 
       <div id="report-content" className="bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 rounded-3xl shadow-2xl overflow-hidden border border-cyan-500/20">
-        {/* Hero Section - Shopify BFCM 2025 Style with Globe */}
-        <div className="bg-gradient-to-br from-slate-900 via-blue-900 to-purple-900 text-white p-12 text-center relative overflow-hidden border-b-2 border-cyan-500/30">
-          {/* Globe Background Image */}
-          <div 
-            className="absolute inset-0 bg-center bg-cover opacity-25 mix-blend-lighten"
-            style={{ 
-              backgroundImage: 'url(/assets/globe-connections.jpg)',
-              filter: 'brightness(0.7) contrast(1.3) saturate(1.2)',
-              transform: 'scale(1.1)'
-            }}
-          />
-          
-          {/* Animated background effects */}
-          <div className="absolute inset-0 opacity-20">
-            <div className="absolute top-10 left-10 w-64 h-64 bg-pink-500 rounded-full blur-3xl animate-pulse"></div>
-            <div className="absolute bottom-10 right-10 w-80 h-80 bg-cyan-500 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
-            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-500 rounded-full blur-3xl opacity-10"></div>
-          </div>
-          
-          {/* Grid pattern overlay */}
-          <div className="absolute inset-0 opacity-5" style={{
-            backgroundImage: 'linear-gradient(cyan 1px, transparent 1px), linear-gradient(90deg, cyan 1px, transparent 1px)',
-            backgroundSize: '50px 50px'
-          }}></div>
-          
-          <div className="relative z-10 backdrop-blur-[1px]">
-            <div className="text-6xl mb-4 drop-shadow-lg">🎁</div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-pink-400 via-cyan-400 to-pink-400 bg-clip-text text-transparent animate-gradient drop-shadow-2xl">
-              Your BFCM 2025, Wrapped
-          </h1>
-            <p className="text-xl sm:text-2xl font-light mb-2 text-white drop-shadow-lg">
-            {data.accountName}
-          </p>
-            <p className="text-base sm:text-lg text-white/90 drop-shadow-md">
-              {new Date(data.startDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })} - {new Date(data.endDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
-          </p>
-          </div>
-        </div>
+        {/* Premium Brand Header with 3D Commerce Illustrations */}
+        <BrandHeader 
+          accountName={data.accountName}
+          startDate={data.startDate}
+          endDate={data.endDate}
+          variant="full"
+        />
 
         {/* Shopify BFCM 2025 Platform Stats - Prominent Section */}
         <div className="bg-gradient-to-br from-slate-800/50 to-blue-900/50 p-8 border-b-2 border-cyan-500/20">
@@ -472,8 +442,8 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                 <div className="text-xs text-white/80 uppercase tracking-wide">Merchants</div>
                 <div className="text-xs text-pink-400 mt-1">Best Day Ever</div>
               </div>
-            </div>
-            
+        </div>
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
               <div className="text-white/70">
                 <span className="text-pink-400">🛍️</span> <strong className="text-white">Hottest Categories:</strong> Cosmetics, Clothing Tops & Pants, Activewear, Fitness & Nutrition
@@ -527,7 +497,7 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
               <div className="mb-12">
                 <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
                   Your Achievements
-                </h2>
+          </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {badges.map((badge) => (
                     <Badge key={badge.id} badge={badge} />
