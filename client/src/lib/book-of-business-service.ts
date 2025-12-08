@@ -122,21 +122,17 @@ export async function fetchAccountShops(accountId: string): Promise<ShopInfo[]> 
   const query = `
     WITH account_shops AS (
       SELECT 
-        ras.account_id,
-        sa.primary_shop_id,
+        ual.account_id,
         shop_id
-      FROM \`shopify-dw.mart_revenue_data.revenue_account_summary\` ras
-      CROSS JOIN UNNEST(ras.shop_ids) as shop_id
-      INNER JOIN \`shopify-dw.sales.sales_accounts\` sa
-        ON ras.account_id = sa.account_id
-      WHERE sa.account_id = '${accountId}'
+      FROM \`sdp-prd-commercial.mart.unified_account_list\` ual
+      CROSS JOIN UNNEST(ual.shop_ids) as shop_id
+      WHERE ual.account_id = '${accountId}'
         AND shop_id IS NOT NULL
     ),
     shops_with_gmv AS (
       SELECT 
         ac.shop_id,
         ac.account_id,
-        ac.primary_shop_id,
         COALESCE(gmv.gmv_usd_l365d, 0) as gmv_usd_l365d,
         spc.name as shop_name
       FROM account_shops ac
@@ -150,9 +146,9 @@ export async function fetchAccountShops(accountId: string): Promise<ShopInfo[]> 
       CAST(shop_id AS STRING) as shop_id,
       shop_name,
       gmv_usd_l365d,
-      CASE WHEN shop_id = primary_shop_id THEN TRUE ELSE FALSE END as is_primary
+      FALSE as is_primary  -- UAL doesn't have primary_shop_id concept
     FROM shops_with_gmv
-    ORDER BY is_primary DESC, gmv_usd_l365d DESC
+    ORDER BY gmv_usd_l365d DESC
     LIMIT 100
   `;
 
