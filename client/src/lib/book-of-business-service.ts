@@ -32,17 +32,19 @@ export async function fetchBookOfBusiness(msmName: string): Promise<MerchantAcco
 
   const query = `
     SELECT 
-      sa.account_id,
-      sa.name as account_name,
-      sa.primary_shop_id,
-      COALESCE(ras.gmv_usd_l365d, 0) as gmv_usd_l365d,
-      COALESCE(ras.shop_count, 0) as shop_count
-    FROM \`shopify-dw.sales.sales_accounts\` sa
-    LEFT JOIN \`shopify-dw.mart_revenue_data.revenue_account_summary\` ras
-      ON sa.account_id = ras.account_id
-    WHERE UPPER(TRIM(sa.account_owner)) = UPPER(TRIM('${msmName}'))
-      AND sa.account_type = 'Customer'
-    ORDER BY ras.gmv_usd_l365d DESC NULLS LAST, sa.name
+      ual.account_id,
+      ual.account_name,
+      ual.primary_shop_id,
+      COALESCE(rags.gmv_usd_l365d, 0) as gmv_usd_l365d,
+      COALESCE(ual.shop_count, 0) as shop_count
+    FROM \`shopify-dw.mart_revenue_data.unified_account_list\` ual
+    LEFT JOIN \`shopify-dw.mart_revenue_data.revenue_account_gmv_summary\` rags
+      ON ual.account_id = rags.account_id
+    LEFT JOIN \`shopify-dw.sales.sales_accounts\` sa
+      ON ual.account_id = sa.account_id
+    WHERE UPPER(TRIM(ual.account_owner)) = UPPER(TRIM('${msmName}'))
+      AND ual.account_type = 'Customer'
+    ORDER BY rags.gmv_usd_l365d DESC NULLS LAST, ual.account_name
     LIMIT 1000
   `;
 
