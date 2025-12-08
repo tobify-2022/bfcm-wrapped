@@ -34,14 +34,11 @@ export async function fetchBookOfBusiness(msmName: string): Promise<MerchantAcco
     SELECT 
       ual.account_id,
       ual.account_name,
-      ual.primary_shop_id,
       COALESCE(rags.gmv_usd_l365d, 0) as gmv_usd_l365d,
-      COALESCE(ual.shop_count, 0) as shop_count
-    FROM \`shopify-dw.mart_revenue_data.unified_account_list\` ual
+      ARRAY_LENGTH(ual.shop_ids) as shop_count
+    FROM \`sdp-prd-commercial.mart.unified_account_list\` ual
     LEFT JOIN \`shopify-dw.mart_revenue_data.revenue_account_gmv_summary\` rags
       ON ual.account_id = rags.account_id
-    LEFT JOIN \`shopify-dw.sales.sales_accounts\` sa
-      ON ual.account_id = sa.account_id
     WHERE UPPER(TRIM(ual.account_owner)) = UPPER(TRIM('${msmName}'))
       AND ual.account_type = 'Customer'
     ORDER BY rags.gmv_usd_l365d DESC NULLS LAST, ual.account_name
@@ -60,11 +57,10 @@ export async function fetchBookOfBusiness(msmName: string): Promise<MerchantAcco
     }
 
     return rows.map((row: any) => {
-      const primaryShopId = row.primary_shop_id ? String(row.primary_shop_id) : null;
       return {
         account_id: String(row.account_id || ''),
         account_name: String(row.account_name || 'Unknown Account'),
-        primary_shop_id: primaryShopId || '', // Keep as empty string for compatibility
+        primary_shop_id: '', // UAL doesn't have primary_shop_id field
         gmv_usd_l365d: Number(row.gmv_usd_l365d || 0),
         shop_count: Number(row.shop_count || 0),
       };
