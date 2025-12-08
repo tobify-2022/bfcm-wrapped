@@ -6,6 +6,10 @@ export interface MerchantAccount {
   primary_shop_id: string;
   gmv_usd_l365d: number;
   shop_count: number;
+  revenue_l12m?: number;
+  profit_l12m?: number;
+  risk_level?: string;
+  service_model?: string;
 }
 
 /**
@@ -35,10 +39,18 @@ export async function fetchBookOfBusiness(msmName: string): Promise<MerchantAcco
       ual.account_id,
       ual.account_name,
       COALESCE(rags.gmv_usd_l365d, 0) as gmv_usd_l365d,
+      COALESCE(raps.revenue_l12m, 0) as revenue_l12m,
+      COALESCE(raps.profit_l12m, 0) as profit_l12m,
+      sa.risk_level,
+      sa.service_model,
       ARRAY_LENGTH(ual.shop_ids) as shop_count
     FROM \`sdp-prd-commercial.mart.unified_account_list\` ual
     LEFT JOIN \`shopify-dw.mart_revenue_data.revenue_account_gmv_summary\` rags
       ON ual.account_id = rags.account_id
+    LEFT JOIN \`shopify-dw.mart_revenue_data.revenue_account_profit_summary\` raps
+      ON ual.account_id = raps.account_id
+    LEFT JOIN \`shopify-dw.sales.sales_accounts\` sa
+      ON ual.account_id = sa.account_id
     WHERE UPPER(TRIM(ual.account_owner)) = UPPER(TRIM('${msmName}'))
       AND ual.account_type = 'Customer'
     ORDER BY rags.gmv_usd_l365d DESC NULLS LAST, ual.account_name
@@ -63,6 +75,10 @@ export async function fetchBookOfBusiness(msmName: string): Promise<MerchantAcco
         primary_shop_id: '', // UAL doesn't have primary_shop_id field
         gmv_usd_l365d: Number(row.gmv_usd_l365d || 0),
         shop_count: Number(row.shop_count || 0),
+        revenue_l12m: row.revenue_l12m ? Number(row.revenue_l12m) : undefined,
+        profit_l12m: row.profit_l12m ? Number(row.profit_l12m) : undefined,
+        risk_level: row.risk_level ? String(row.risk_level) : undefined,
+        service_model: row.service_model ? String(row.service_model) : undefined,
       };
     });
   } catch (error) {
