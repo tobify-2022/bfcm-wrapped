@@ -30,7 +30,7 @@ export default function BrandHeader({
               className="w-16 h-16 object-contain drop-shadow-lg"
             />
             <div>
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-400 via-cyan-400 to-pink-400 bg-clip-text text-transparent">
+              <h1 className="text-2xl font-bold text-white drop-shadow-lg" style={{ textShadow: '0 0 20px rgba(6, 182, 212, 0.5)' }}>
                 BFCM {year} Wrapped
               </h1>
               <p className="text-sm text-white/70">{accountName}</p>
@@ -80,12 +80,12 @@ export default function BrandHeader({
         <div className="mb-6">
           <div className="flex items-center justify-center gap-3 mb-3">
             <Sparkles className="w-8 h-8 text-pink-400 animate-pulse" />
-            <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-pink-400 via-cyan-400 to-pink-400 bg-clip-text text-transparent animate-gradient drop-shadow-2xl">
+            <h1 className="text-5xl md:text-6xl font-bold text-white drop-shadow-2xl" style={{ textShadow: '0 0 30px rgba(236, 72, 153, 0.6), 0 0 60px rgba(6, 182, 212, 0.4)' }}>
               Your BFCM {year}
             </h1>
             <Sparkles className="w-8 h-8 text-cyan-400 animate-pulse" style={{ animationDelay: '0.5s' }} />
           </div>
-          <div className="text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent drop-shadow-lg">
+          <div className="text-4xl font-bold text-white drop-shadow-lg" style={{ textShadow: '0 0 20px rgba(192, 132, 252, 0.5)' }}>
             Wrapped
           </div>
         </div>
