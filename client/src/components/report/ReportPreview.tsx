@@ -1,5 +1,5 @@
 import { ReportData } from '@/pages/Home';
-import { Download, Info } from 'lucide-react';
+import { Download, Info, TrendingUp, Lightbulb, ShoppingCart } from 'lucide-react';
 import { generatePDF } from '@/lib/pdf-generator';
 import { useState, useEffect } from 'react';
 import { detectCommercePersonality } from '@/lib/commerce-personality';
@@ -16,6 +16,30 @@ import { ColorTheme, getMetricColors, getGrowthColors } from '@/lib/color-theme'
 import Badge from './Badge';
 import Confetti from './Confetti';
 import AnimatedSection from './AnimatedSection';
+import InsightCard from './InsightCard';
+import { 
+  getGrowthInsight, 
+  getFunnelInsight, 
+  getLoyaltyInsight,
+  getChannelInsight 
+} from '@/lib/insights-generator';
+import {
+  prepareChannelPieData,
+  prepareProductBarData
+} from '@/lib/chart-data-helpers';
+import {
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  LabelList
+} from 'recharts';
 
 interface ReportPreviewProps {
   data: ReportData;
@@ -161,8 +185,8 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
   const isFutureDate = new Date(data.startDate) > new Date();
   
   if (!hasData) {
-    return (
-      <div className="max-w-4xl mx-auto">
+  return (
+    <div className="max-w-4xl mx-auto">
         <div className="bg-gradient-to-br from-amber-500/20 to-yellow-500/20 border border-amber-500/30 rounded-lg p-8 text-center backdrop-blur-sm">
           <div className="text-4xl mb-4">📊</div>
           <h3 className="text-xl font-semibold text-amber-400 mb-2">
@@ -241,7 +265,7 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                 Generate Slides
               </>
             )}
-          </button>
+        </button>
         </div>
       </div>
 
@@ -401,7 +425,7 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
               <div className="mb-8 p-6 bg-gradient-to-br from-slate-800/50 to-blue-900/50 rounded-2xl border-2 border-cyan-500/20 backdrop-blur-sm">
                 <h3 className="text-xl font-semibold mb-4 text-center text-white">Year-over-Year Growth</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div>
+            <div>
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm text-white/70">GMV</span>
                       <span className={`text-sm font-semibold ${yoyGMVChange >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
@@ -426,8 +450,8 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                         <div className="text-xs text-white/80 mt-1 font-semibold">{formatCurrency(data.metrics2025.total_gmv / 1000)}K</div>
                       </div>
                     </div>
-                  </div>
-                  <div>
+            </div>
+            <div>
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm text-white/70">Orders</span>
                       <span className={`text-sm font-semibold ${yoyOrdersChange >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
@@ -452,14 +476,14 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                         <div className="text-xs text-white/80 mt-1 font-semibold">{data.metrics2025.total_orders.toLocaleString()}</div>
                       </div>
                     </div>
-                  </div>
-                  <div>
+            </div>
+            <div>
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm text-white/70">AOV</span>
                       <span className={`text-sm font-semibold ${yoyAOVChange >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
                         {formatPercent(yoyAOVChange)}
                       </span>
-                    </div>
+            </div>
                     <div className="flex items-end gap-2 h-24">
                       <div className="flex-1 flex flex-col items-center">
                         <div className="text-xs text-white/60 mb-1">2024</div>
@@ -468,7 +492,7 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                           style={{ height: '40%' }}
                         ></div>
                         <div className="text-xs text-white/80 mt-1 font-semibold">${data.metrics2024.aov.toFixed(0)}</div>
-                      </div>
+          </div>
                       <div className="flex-1 flex flex-col items-center">
                         <div className="text-xs text-white/60 mb-1">2025</div>
                         <div 
@@ -476,7 +500,7 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                           style={{ height: `${Math.min((data.metrics2025.aov / data.metrics2024.aov) * 40, 100)}%` }}
                         ></div>
                         <div className="text-xs text-white/80 mt-1 font-semibold">${data.metrics2025.aov.toFixed(0)}</div>
-                      </div>
+        </div>
                     </div>
                   </div>
                 </div>
@@ -490,9 +514,9 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                 )}
                 <div className="text-sm text-white/70 mb-2 uppercase tracking-wide">Total Sales</div>
                 <div className={`text-4xl font-bold ${getMetricColors('gmv').textBold} mb-3`}>
-                  {formatCurrency(data.metrics2025.total_gmv)}
-                </div>
-                {data.metrics2024.total_gmv > 0 && (
+                {formatCurrency(data.metrics2025.total_gmv)}
+              </div>
+              {data.metrics2024.total_gmv > 0 && (
                   <div className={`text-lg font-semibold ${getGrowthColors(yoyGMVChange >= 0).text}`}>
                     {formatPercent(yoyGMVChange)} vs 2024
                 </div>
@@ -513,8 +537,8 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
               {data.metrics2024.total_orders > 0 && (
                   <div className={`text-lg font-semibold ${getGrowthColors(yoyOrdersChange >= 0).text}`}>
                     {formatPercent(yoyOrdersChange)} vs 2024
-                  </div>
-                )}
+                </div>
+              )}
                 <div className="text-sm text-white/70 mt-3">
                   Orders fulfilled
                 </div>
@@ -531,13 +555,23 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
               {data.metrics2024.aov > 0 && (
                   <div className={`text-lg font-semibold ${getGrowthColors(yoyAOVChange >= 0).text}`}>
                     {formatPercent(yoyAOVChange)} vs 2024
-                  </div>
-                )}
+                </div>
+              )}
                 <div className="text-sm text-white/70 mt-3">
                   Per order
-                </div>
-              </div>
             </div>
+          </div>
+        </div>
+
+            {/* Growth Insight Card */}
+            {data.metrics2024.total_gmv > 0 && (
+              <InsightCard
+                title="Year-over-Year Performance"
+                insight={getGrowthInsight(yoyGMVChange, 'GMV')}
+                icon={TrendingUp}
+                variant={yoyGMVChange > 20 ? 'success' : yoyGMVChange > 0 ? 'info' : 'warning'}
+              />
+            )}
           </div>
           </AnimatedSection>
 
@@ -602,7 +636,7 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                 </div>
                 <div className="text-5xl font-bold bg-gradient-to-r from-pink-400 via-cyan-400 to-pink-400 bg-clip-text text-transparent mb-3 animate-gradient">
               {formatCurrency(data.peakGMV.peak_gmv_per_minute)} per minute
-                </div>
+            </div>
                 <div className="text-lg text-white/80 mb-2">
                   {new Date(data.peakGMV.peak_minute).toLocaleString('en-US', { 
                     weekday: 'long',
@@ -611,10 +645,10 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                     hour: 'numeric',
                     minute: '2-digit'
                   })}
-                </div>
+            </div>
                 <div className="text-base font-medium text-white/90 italic">
                   {getPeakGMVContext(data.peakGMV.peak_gmv_per_minute, data.peakGMV.peak_minute)}
-                </div>
+          </div>
               </div>
             </AnimatedSection>
           )}
@@ -626,7 +660,7 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
               <div className="mb-12">
                 <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-center bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
                   🚀 Shopify Ecosystem Wins
-                </h2>
+            </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                   {data.customerInsights.shop_pay_pct !== undefined && data.customerInsights.shop_pay_pct > 0 && (
                     <div className={`bg-gradient-to-br ${ColorTheme.shopPay.bgGradient} rounded-2xl p-6 sm:p-8 border-2 ${ColorTheme.shopPay.border} backdrop-blur-sm`}>
@@ -778,120 +812,105 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                   )}
                 </div>
               </div>
+              
+              {/* Customer Loyalty Insight Card */}
+              {data.customerInsights.new_customers + data.customerInsights.returning_customers > 0 && (
+                <InsightCard
+                  title="Customer Loyalty"
+                  insight={getLoyaltyInsight(
+                    (data.customerInsights.returning_customers / 
+                    (data.customerInsights.new_customers + data.customerInsights.returning_customers)) * 100
+                  )}
+                  icon={Lightbulb}
+                  variant="info"
+                />
+              )}
             </div>
             </AnimatedSection>
           )}
 
-          {/* Checkout Conversion Funnel */}
+          {/* Checkout Conversion Funnel - With Recharts */}
           {data.conversionMetrics.total_sessions > 0 && (
             <AnimatedSection delay={1100}>
               <div className="mb-12">
-                <h2 className="text-2xl sm:text-3xl font-bold mb-6 text-center bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                  🛒 Checkout Funnel Performance
-                </h2>
-                <div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-3xl p-8 border-2 border-cyan-500/30 backdrop-blur-sm">
-                  {/* Funnel Visualization */}
-                  <div className="max-w-3xl mx-auto">
-                    {/* Total Sessions */}
-                    <div className="text-center mb-6">
-                      <div className="inline-block bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-2xl px-8 py-6 border-2 border-cyan-500/40">
-                        <div className="text-4xl font-bold text-cyan-400 mb-2">
-                          {data.conversionMetrics.total_sessions.toLocaleString()}
-                        </div>
-                        <div className="text-sm text-white/70 uppercase tracking-wide">Total Sessions</div>
-                      </div>
-                    </div>
-
-                    {/* Arrow & Add to Cart Rate */}
-                    <div className="text-center mb-4">
-                      <div className="text-cyan-400 text-3xl mb-2">↓</div>
-                      <div className="text-white/70 text-sm">
-                        {((data.conversionMetrics.sessions_with_cart / data.conversionMetrics.total_sessions) * 100).toFixed(1)}% add to cart
-                      </div>
-                    </div>
-
-                    {/* Sessions with Cart */}
-                    <div className="text-center mb-6">
-                      <div className="inline-block bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-2xl px-8 py-6 border-2 border-purple-500/40">
-                        <div className="text-4xl font-bold text-purple-400 mb-2">
-                          {data.conversionMetrics.sessions_with_cart.toLocaleString()}
-                        </div>
-                        <div className="text-sm text-white/70 uppercase tracking-wide">Sessions with Cart Adds</div>
-                      </div>
-                    </div>
-
-                    {/* Arrow & Cart to Checkout Rate */}
-                    <div className="text-center mb-4">
-                      <div className="text-purple-400 text-3xl mb-2">↓</div>
-                      <div className="text-white/70 text-sm">
-                        {data.conversionMetrics.cart_to_checkout_rate.toFixed(1)}% proceed to checkout
-                      </div>
-                    </div>
-
-                    {/* Sessions at Checkout */}
-                    <div className="text-center mb-6">
-                      <div className="inline-block bg-gradient-to-br from-pink-500/20 to-purple-500/20 rounded-2xl px-8 py-6 border-2 border-pink-500/40">
-                        <div className="text-4xl font-bold text-pink-400 mb-2">
-                          {data.conversionMetrics.sessions_with_checkout.toLocaleString()}
-                        </div>
-                        <div className="text-sm text-white/70 uppercase tracking-wide">Sessions Reached Checkout</div>
-                      </div>
-                    </div>
-
-                    {/* Arrow & Conversion Rate */}
-                    <div className="text-center mb-4">
-                      <div className="text-pink-400 text-3xl mb-2">↓</div>
-                      <div className="text-white/70 text-sm">
-                        {data.conversionMetrics.conversion_rate > 0 
-                          ? `${data.conversionMetrics.conversion_rate.toFixed(2)}% complete purchase`
-                          : 'final conversion'
-                        }
-                      </div>
-                    </div>
-
-                    {/* Completed Orders */}
-                    <div className="text-center mb-8">
-                      <div className="inline-block bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-2xl px-8 py-6 border-2 border-green-500/40">
-                        <div className="text-4xl font-bold text-green-400 mb-2">
-                          {data.metrics2025.total_orders.toLocaleString()}
-                        </div>
-                        <div className="text-sm text-white/70 uppercase tracking-wide">Completed Orders</div>
-                      </div>
-                    </div>
-
-                    {/* Overall Conversion Rate - Big Highlight */}
-                    <div className="text-center bg-gradient-to-r from-cyan-500/20 to-pink-500/20 rounded-2xl p-6 border-2 border-cyan-500/40 mb-6">
-                      <div className="text-sm text-white/70 mb-2 uppercase tracking-wide">Overall Conversion Rate</div>
-                      <div className="text-5xl font-bold bg-gradient-to-r from-cyan-400 to-pink-400 bg-clip-text text-transparent">
-                        {data.conversionMetrics.conversion_rate.toFixed(2)}%
-                      </div>
-                    </div>
-
-                    {/* Device Breakdown */}
-                    {(data.conversionMetrics.mobile_sessions > 0 || data.conversionMetrics.desktop_sessions > 0) && (
-                      <div className="grid grid-cols-2 gap-4 mt-6">
-                        <div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-xl p-4 border border-cyan-500/30">
-                          <div className="text-xs text-white/60 mb-2 uppercase">📱 Mobile</div>
-                          <div className="text-2xl font-bold text-cyan-400">
-                            {data.conversionMetrics.mobile_sessions.toLocaleString()}
-                          </div>
-                          <div className="text-xs text-white/70 mt-1">
-                            {((data.conversionMetrics.mobile_sessions / data.conversionMetrics.total_sessions) * 100).toFixed(1)}% of sessions
-                          </div>
-                        </div>
-                        <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-xl p-4 border border-purple-500/30">
-                          <div className="text-xs text-white/60 mb-2 uppercase">🖥️ Desktop</div>
-                          <div className="text-2xl font-bold text-purple-400">
-                            {data.conversionMetrics.desktop_sessions.toLocaleString()}
-                          </div>
-                          <div className="text-xs text-white/70 mt-1">
-                            {((data.conversionMetrics.desktop_sessions / data.conversionMetrics.total_sessions) * 100).toFixed(1)}% of sessions
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                <div className="flex items-center gap-2 mb-6 justify-center">
+                  <h2 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
+                    🛒 Checkout Funnel Performance
+                  </h2>
+                  <QueryTooltip queryKey="conversionMetrics">
+                    <span></span>
+                  </QueryTooltip>
                 </div>
+                
+                <div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-3xl p-8 border-2 border-cyan-500/30 backdrop-blur-sm mb-6">
+                  {/* Funnel Stats Grid */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <div className="bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-xl p-4 border border-cyan-500/40 text-center">
+                      <div className="text-3xl font-bold text-cyan-400">
+                        {data.conversionMetrics.total_sessions.toLocaleString()}
+                      </div>
+                      <div className="text-xs text-white/70 mt-1 uppercase">Sessions</div>
+                    </div>
+                    <div className="bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-xl p-4 border border-purple-500/40 text-center">
+                      <div className="text-3xl font-bold text-purple-400">
+                        {data.conversionMetrics.sessions_with_cart.toLocaleString()}
+                      </div>
+                      <div className="text-xs text-white/70 mt-1 uppercase">Add to Cart</div>
+                    </div>
+                    <div className="bg-gradient-to-br from-pink-500/20 to-purple-500/20 rounded-xl p-4 border border-pink-500/40 text-center">
+                      <div className="text-3xl font-bold text-pink-400">
+                        {data.conversionMetrics.sessions_with_checkout.toLocaleString()}
+                      </div>
+                      <div className="text-xs text-white/70 mt-1 uppercase">Checkout</div>
+                    </div>
+                    <div className="bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-xl p-4 border border-green-500/40 text-center">
+                      <div className="text-3xl font-bold text-green-400">
+                        {data.metrics2025.total_orders.toLocaleString()}
+                      </div>
+                      <div className="text-xs text-white/70 mt-1 uppercase">Converted</div>
+                    </div>
+                  </div>
+
+                  {/* Overall Conversion Rate Highlight */}
+                  <div className="text-center bg-gradient-to-r from-cyan-500/20 to-pink-500/20 rounded-2xl p-6 border-2 border-cyan-500/40 mb-6">
+                    <div className="text-sm text-white/70 mb-2 uppercase tracking-wide">Overall Conversion Rate</div>
+                    <div className="text-5xl font-bold bg-gradient-to-r from-cyan-400 to-pink-400 bg-clip-text text-transparent">
+                      {data.conversionMetrics.conversion_rate.toFixed(2)}%
+                    </div>
+                  </div>
+
+                  {/* Device Breakdown */}
+                  {(data.conversionMetrics.mobile_sessions > 0 || data.conversionMetrics.desktop_sessions > 0) && (
+                    <div className="grid grid-cols-2 gap-4 mt-6">
+                      <div className="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-xl p-4 border border-cyan-500/30">
+                        <div className="text-xs text-white/60 mb-2 uppercase">📱 Mobile</div>
+                        <div className="text-2xl font-bold text-cyan-400">
+                          {data.conversionMetrics.mobile_sessions.toLocaleString()}
+                        </div>
+                        <div className="text-xs text-white/70 mt-1">
+                          {((data.conversionMetrics.mobile_sessions / data.conversionMetrics.total_sessions) * 100).toFixed(1)}% of sessions
+                        </div>
+                      </div>
+                      <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-xl p-4 border border-purple-500/30">
+                        <div className="text-xs text-white/60 mb-2 uppercase">🖥️ Desktop</div>
+                        <div className="text-2xl font-bold text-purple-400">
+                          {data.conversionMetrics.desktop_sessions.toLocaleString()}
+                        </div>
+                        <div className="text-xs text-white/70 mt-1">
+                          {((data.conversionMetrics.desktop_sessions / data.conversionMetrics.total_sessions) * 100).toFixed(1)}% of sessions
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Funnel Insight Card */}
+                <InsightCard
+                  title="Conversion Performance"
+                  insight={getFunnelInsight(data.conversionMetrics.conversion_rate)}
+                  icon={ShoppingCart}
+                  variant="info"
+                />
               </div>
             </AnimatedSection>
           )}
@@ -1352,6 +1371,53 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                   </div>
                 </div>
               )}
+              
+              {/* Top Products Bar Chart */}
+              {data.topProducts.length >= 5 && (
+                <div className="mb-8 bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-2xl p-6 border border-purple-500/30">
+                  <h3 className="text-lg font-bold text-white mb-4 text-center">Top 5 Products by GMV</h3>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart
+                      data={prepareProductBarData(data.topProducts)}
+                      layout="vertical"
+                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                      <XAxis
+                        type="number"
+                        tick={{ fill: 'white', fontSize: 12 }}
+                        tickFormatter={(value) => `$${(value / 1000).toFixed(0)}K`}
+                      />
+                      <YAxis
+                        type="category"
+                        dataKey="name"
+                        tick={{ fill: 'white', fontSize: 12 }}
+                        width={150}
+                      />
+                      <Tooltip
+                        formatter={(value: number) => formatCurrency(value)}
+                        contentStyle={{
+                          backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                          border: '1px solid rgba(100, 181, 246, 0.3)',
+                          borderRadius: '8px',
+                          color: 'white'
+                        }}
+                      />
+                      <Bar dataKey="value" radius={[0, 8, 8, 0]}>
+                        {prepareProductBarData(data.topProducts).map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} />
+                        ))}
+                        <LabelList
+                          dataKey="label"
+                          position="right"
+                          style={{ fill: 'white', fontSize: '12px', fontWeight: 'bold' }}
+                        />
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+              
               <div className="space-y-2">
                 {data.topProducts.slice(1, 10).map((product, index) => (
                   <div key={index + 2} className="flex justify-between items-center py-4 px-5 bg-gradient-to-r from-slate-800/50 via-blue-900/50 to-slate-800/50 rounded-xl border border-cyan-500/20 hover:shadow-lg hover:shadow-cyan-500/20 hover:scale-[1.02] transition-all backdrop-blur-sm">
@@ -1376,18 +1442,18 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                       )}
                       <div className="flex-1">
                         <div className="font-bold text-lg text-white">{product.product_title}</div>
-                        {product.variant_title && (
+                    {product.variant_title && (
                           <div className="text-sm text-white/70">{product.variant_title}</div>
-                        )}
+                    )}
                       </div>
-                    </div>
-                    <div className="text-right">
+                  </div>
+                  <div className="text-right">
                       <div className="font-bold text-xl text-pink-400">{formatCurrency(product.revenue)}</div>
                       <div className="text-sm text-white/70 font-medium">{product.units_sold.toLocaleString()} units</div>
-                    </div>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
+            </div>
             </div>
             </AnimatedSection>
           ) : (
@@ -1401,50 +1467,87 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
           </div>
         )}
 
-          {/* Channel Performance - Enhanced */}
+          {/* Channel Performance - With Recharts PieChart */}
         {data.channelPerformance.length > 0 && (
             <AnimatedSection delay={1800}>
               <div className="mb-12">
-                <h2 className="text-3xl font-bold mb-6 bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent text-center">
-                  📈 Sales by Channel
+                <div className="flex items-center gap-2 mb-6 justify-center">
+                  <h2 className="text-3xl font-bold bg-gradient-to-r from-pink-400 to-cyan-400 bg-clip-text text-transparent">
+                    📈 Sales by Channel
             </h2>
-            <div className="space-y-3">
-              {data.channelPerformance.map((channel, index) => (
-                    <div key={index} className="p-5 bg-gradient-to-r from-slate-800/50 to-blue-900/50 rounded-lg border border-cyan-500/20 backdrop-blur-sm">
-                      <div className="flex justify-between items-center mb-3">
-                        <div className="font-semibold text-lg capitalize text-white">{channel.channel_type}</div>
-                        <div className={`text-lg font-bold ${channel.yoy_growth_pct >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
-                      {formatPercent(channel.yoy_growth_pct)} YoY
-                    </div>
-                  </div>
-                      <div className="grid grid-cols-4 gap-4 text-sm">
-                        <div>
-                          <div className="text-white/70">2025 GMV</div>
-                          <div className="font-medium text-lg text-pink-400">{formatCurrency(channel.gmv_2025)}</div>
-                        </div>
-                        <div>
-                          <div className="text-white/70">2025 Orders</div>
-                          <div className="font-medium text-cyan-400">{channel.orders_2025.toLocaleString()}</div>
-                        </div>
-                        <div>
-                          <div className="text-white/70">2024 GMV</div>
-                          <div className="font-medium text-purple-400">{formatCurrency(channel.gmv_2024)}</div>
-                        </div>
-                    <div>
-                          <div className="text-white/70">2024 Orders</div>
-                          <div className="font-medium text-blue-400">{channel.orders_2024.toLocaleString()}</div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                  <QueryTooltip queryKey="channelPerformance">
+                    <span></span>
+                  </QueryTooltip>
                 </div>
-                {biggestChannelGrowth && (
-                  <div className="mt-4 p-4 bg-gradient-to-br from-cyan-500/20 to-green-500/20 rounded-lg border border-cyan-500/30 backdrop-blur-sm">
-                    <div className="text-sm text-white/70 mb-1">🚀 Biggest Channel Growth YoY</div>
-                    <div className="text-xl font-bold text-cyan-400 capitalize">
-                      {biggestChannelGrowth.channel_type}: {formatPercent(biggestChannelGrowth.yoy_growth_pct)}
+                
+                <div className="bg-gradient-to-br from-pink-500/10 to-cyan-500/10 rounded-3xl p-8 border-2 border-pink-500/30 backdrop-blur-sm mb-6">
+                  {/* Pie Chart */}
+                  <div className="flex flex-col lg:flex-row gap-8 items-center">
+                    <div className="w-full lg:w-1/2">
+                      <ResponsiveContainer width="100%" height={300}>
+                        <PieChart>
+                          <Pie
+                            data={prepareChannelPieData(data.channelPerformance)}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={60}
+                            outerRadius={100}
+                            paddingAngle={5}
+                            dataKey="value"
+                            label={(entry) => entry.percent ? `${entry.percent.toFixed(1)}%` : ''}
+                            labelLine={{ stroke: 'rgba(255,255,255,0.5)' }}
+                          >
+                            {prepareChannelPieData(data.channelPerformance).map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.fill} />
+                            ))}
+                          </Pie>
+                          <Tooltip
+                            formatter={(value: number) => formatCurrency(value)}
+                            contentStyle={{
+                              backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                              border: '1px solid rgba(100, 181, 246, 0.3)',
+                              borderRadius: '8px',
+                              color: 'white'
+                            }}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                    
+                    {/* Channel Details */}
+                    <div className="w-full lg:w-1/2 space-y-3">
+              {data.channelPerformance.map((channel, index) => (
+                        <div key={index} className="p-4 bg-gradient-to-r from-slate-800/50 to-blue-900/50 rounded-lg border border-cyan-500/20">
+                  <div className="flex justify-between items-center mb-2">
+                            <div className="font-semibold text-lg capitalize text-white">{channel.channel_type}</div>
+                            <div className={`text-lg font-bold ${channel.yoy_growth_pct >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
+                              {formatPercent(channel.yoy_growth_pct)}
                     </div>
                   </div>
+                          <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                              <div className="text-white/60 text-xs">GMV</div>
+                              <div className="font-bold text-pink-400">{formatCurrency(channel.gmv_2025)}</div>
+                    </div>
+                    <div>
+                              <div className="text-white/60 text-xs">Orders</div>
+                              <div className="font-bold text-cyan-400">{channel.orders_2025.toLocaleString()}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+                </div>
+
+                {/* Channel Insight Card */}
+                {biggestChannelGrowth && (
+                  <InsightCard
+                    title="Channel Performance"
+                    insight={getChannelInsight(biggestChannelGrowth.channel_type, biggestChannelGrowth.yoy_growth_pct)}
+                    icon={TrendingUp}
+                    variant="success"
+                  />
                 )}
               </div>
             </AnimatedSection>
@@ -1454,7 +1557,7 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
           <div className="mt-12 pt-8 border-t-2 border-cyan-500/20 text-center">
             <div className="text-sm text-white/70 mb-2">
               Generated by Shopify Customer Success
-            </div>
+        </div>
             <div className="text-xs text-white/60">
               BFCM Wrapped Report • {new Date().toLocaleDateString()}
                 </div>
@@ -1468,3 +1571,4 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
     </div>
   );
 }
+

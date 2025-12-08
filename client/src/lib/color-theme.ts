@@ -152,6 +152,17 @@ export const ColorTheme = {
     strong: 'border-cyan-500/30',
     accent: 'border-pink-500/30',
   },
+  
+  // Recharts Color Palette (Shopify-Wrapped inspired)
+  charts: {
+    colors: ['#667eea', '#764ba2', '#f59e0b', '#10b981', '#ec4899', '#8b5cf6'],
+    purple: '#667eea',
+    indigo: '#764ba2',
+    amber: '#f59e0b',
+    emerald: '#10b981',
+    pink: '#ec4899',
+    violet: '#8b5cf6',
+  },
 } as const;
 
 /**
