@@ -1,7 +1,7 @@
 import { ReportData } from '@/pages/Home';
-import { Download, Info, TrendingUp, Lightbulb, ShoppingCart, Presentation } from 'lucide-react';
+import { Download, Info, TrendingUp, Lightbulb, ShoppingCart } from 'lucide-react';
 import { generatePDF } from '@/lib/pdf-generator';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { detectCommercePersonality } from '@/lib/commerce-personality';
 import { calculateBadges } from '@/lib/badges';
 import { 
@@ -21,9 +21,7 @@ import {
   getGrowthInsight, 
   getFunnelInsight, 
   getLoyaltyInsight,
-  getChannelInsight,
-  INDUSTRY_BENCHMARKS,
-  generateRecommendations
+  getChannelInsight 
 } from '@/lib/insights-generator';
 import {
   prepareChannelPieData,
@@ -42,18 +40,6 @@ import {
   ResponsiveContainer,
   LabelList
 } from 'recharts';
-// New imports for optimization
-import { computeDerivedMetrics } from '@/lib/report-data-transforms';
-import ExecutiveSummary from './ExecutiveSummary';
-import PerformanceScorecard from './PerformanceScorecard';
-import RecommendationsSection from './RecommendationsSection';
-import SlideMode from './SlideMode';
-import { 
-  getMetricsTransition, 
-  getCustomerTransition,
-  getRecommendationsTransition,
-  getTransitionStyles
-} from '@/lib/narrative-connectors';
 
 interface ReportPreviewProps {
   data: ReportData;
@@ -63,18 +49,18 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
   const [hoveredQuery, setHoveredQuery] = useState<string | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number } | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
-  const [slideModeActive, setSlideModeActive] = useState(false);
-  
-  // OPTIMIZATION: Compute all derived metrics once using useMemo
-  const derived = useMemo(() => computeDerivedMetrics(data), [data]);
 
-  // Trigger confetti on mount if there's significant growth (use derived metrics)
+  // Trigger confetti on mount if there's significant growth
   useEffect(() => {
-    if (derived.yoyGMVChangePct > 50 || data.metrics2024.total_gmv === 0) {
+    const yoyGMVChange = data.metrics2024.total_gmv > 0
+      ? ((data.metrics2025.total_gmv - data.metrics2024.total_gmv) / data.metrics2024.total_gmv) * 100
+      : 0;
+    
+    if (yoyGMVChange > 50 || data.metrics2024.total_gmv === 0) {
       setShowConfetti(true);
       setTimeout(() => setShowConfetti(false), 3000);
     }
-  }, [derived.yoyGMVChangePct, data.metrics2024.total_gmv]);
+  }, [data]);
 
   const [isGeneratingSlides, setIsGeneratingSlides] = useState(false);
   const [slidesUrl, setSlidesUrl] = useState<string | null>(null);
@@ -169,19 +155,28 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
     );
   };
 
-  // Find biggest channel growth (memoized)
-  const biggestChannelGrowth = useMemo(() => 
-    data.channelPerformance.length > 0
-      ? data.channelPerformance.reduce((max, channel) => 
-          channel.yoy_growth_pct > max.yoy_growth_pct ? channel : max
-        )
-      : null,
-    [data.channelPerformance]
-  );
+  const yoyGMVChange = data.metrics2024.total_gmv > 0
+    ? ((data.metrics2025.total_gmv - data.metrics2024.total_gmv) / data.metrics2024.total_gmv) * 100
+    : 0;
 
-  // Calculate badges and personalities (memoized)
-  const badges = useMemo(() => calculateBadges(data), [data]);
-  const personalities = useMemo(() => detectCommercePersonality(data), [data]);
+  const yoyOrdersChange = data.metrics2024.total_orders > 0
+    ? ((data.metrics2025.total_orders - data.metrics2024.total_orders) / data.metrics2024.total_orders) * 100
+    : 0;
+
+  const yoyAOVChange = data.metrics2024.aov > 0
+    ? ((data.metrics2025.aov - data.metrics2024.aov) / data.metrics2024.aov) * 100
+    : 0;
+
+  // Find biggest channel growth
+  const biggestChannelGrowth = data.channelPerformance.length > 0
+    ? data.channelPerformance.reduce((max, channel) => 
+        channel.yoy_growth_pct > max.yoy_growth_pct ? channel : max
+      )
+    : null;
+
+  // Calculate badges and personalities
+  const badges = calculateBadges(data);
+  const personalities = detectCommercePersonality(data);
 
   // Check if we have meaningful data
   const hasData = data.metrics2025.total_gmv > 0 || data.metrics2025.total_orders > 0;
@@ -221,121 +216,6 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
     );
   }
 
-  // Narrative Transition Component
-  const NarrativeTransition = ({ transition }: { transition: ReturnType<typeof getMetricsTransition> }) => (
-    <div className={`my-12 p-6 rounded-xl border ${getTransitionStyles(transition.tone)} backdrop-blur-sm`}>
-      <p className="text-lg italic leading-relaxed text-center">{transition.text}</p>
-    </div>
-  );
-  
-  // Generate recommendations using derived metrics and actual data
-  const recommendations = useMemo(() => 
-    generateRecommendations(
-      data.conversionMetrics.conversion_rate,
-      derived.repeatCustomerRate,
-      derived.mobileSessionPct,
-      data.customerInsights.shop_pay_pct,
-      data.internationalSales.cross_border_pct,
-      data.discountMetrics.discounted_sales_pct,
-      data.retailMetrics.retail_gmv,
-      derived.yoyGMVChangePct
-    ),
-    [
-      data.conversionMetrics.conversion_rate,
-      derived.repeatCustomerRate,
-      derived.mobileSessionPct,
-      data.customerInsights.shop_pay_pct,
-      data.internationalSales.cross_border_pct,
-      data.discountMetrics.discounted_sales_pct,
-      data.retailMetrics.retail_gmv,
-      derived.yoyGMVChangePct
-    ]
-  );
-  
-  // Generate key takeaways for Executive Summary
-  const keyTakeaways = useMemo(() => {
-    const takeaways: string[] = [];
-    
-    // Growth insight
-    if (derived.yoyGMVChangePct > 30) {
-      takeaways.push(`Exceptional ${derived.yoyGMVChangePct.toFixed(0)}% YoY growth places you in the top 5% of merchants.`);
-    } else if (derived.yoyGMVChangePct > 15) {
-      takeaways.push(`Strong ${derived.yoyGMVChangePct.toFixed(0)}% YoY growth demonstrates solid market traction.`);
-    } else if (derived.yoyGMVChangePct > 0) {
-      takeaways.push(`Positive ${derived.yoyGMVChangePct.toFixed(0)}% growth in a competitive landscape.`);
-    } else {
-      takeaways.push(`Strategic opportunities identified to reverse decline and capture growth.`);
-    }
-    
-    // Dominant channel or diversification
-    if (derived.dominantChannel) {
-      if (derived.dominantChannel.percentage > 70) {
-        takeaways.push(`${derived.dominantChannel.name} dominates at ${derived.dominantChannel.percentage.toFixed(0)}%—consider channel diversification.`);
-      } else {
-        takeaways.push(`Healthy channel mix with ${derived.dominantChannel.name} leading at ${derived.dominantChannel.percentage.toFixed(0)}%.`);
-      }
-    }
-    
-    // Conversion performance
-    if (data.conversionMetrics.conversion_rate > INDUSTRY_BENCHMARKS.averageConversionRate) {
-      takeaways.push(`Above-average ${data.conversionMetrics.conversion_rate.toFixed(1)}% conversion rate (benchmark: ${INDUSTRY_BENCHMARKS.averageConversionRate}%).`);
-    } else {
-      takeaways.push(`Conversion optimization opportunity—currently at ${data.conversionMetrics.conversion_rate.toFixed(1)}% vs. ${INDUSTRY_BENCHMARKS.averageConversionRate}% benchmark.`);
-    }
-    
-    // Customer loyalty
-    if (derived.repeatCustomerRate > INDUSTRY_BENCHMARKS.averageRepeatRate) {
-      takeaways.push(`Strong customer loyalty with ${derived.repeatCustomerRate.toFixed(0)}% repeat rate.`);
-    } else {
-      takeaways.push(`Building customer retention is a key opportunity (current: ${derived.repeatCustomerRate.toFixed(0)}%).`);
-    }
-    
-    // Top opportunity (from recommendations)
-    if (recommendations.length > 0) {
-      takeaways.push(`Top priority: ${recommendations[0].title}.`);
-    }
-    
-    return takeaways.slice(0, 5); // Maximum 5 takeaways
-  }, [derived, data.conversionMetrics.conversion_rate, data.customerInsights, recommendations]);
-
-  // SlideMode overlay
-  if (slideModeActive) {
-    // Create slides from report sections
-    const slides = [
-      {
-        id: 'summary',
-        title: 'Executive Summary',
-        content: (
-          <ExecutiveSummary
-            accountName={data.accountName}
-            totalGMV={data.metrics2025.total_gmv}
-            totalOrders={data.metrics2025.total_orders}
-            derivedMetrics={derived}
-            keyTakeaways={keyTakeaways}
-          />
-        )
-      },
-      {
-        id: 'scorecard',
-        title: 'Performance Scorecard',
-        content: (
-          <PerformanceScorecard
-            derivedMetrics={derived}
-            conversionRate={data.conversionMetrics.conversion_rate}
-            shopPayPct={data.customerInsights.shop_pay_pct}
-          />
-        )
-      },
-      {
-        id: 'recommendations',
-        title: 'Strategic Recommendations',
-        content: <RecommendationsSection recommendations={recommendations} />
-      }
-    ];
-    
-    return <SlideMode slides={slides} onClose={() => setSlideModeActive(false)} />;
-  }
-
   return (
     <div className="max-w-6xl mx-auto relative">
       <Confetti trigger={showConfetti} />
@@ -351,22 +231,13 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
           )}
         </div>
         <div className="flex gap-3">
-          <button
-            onClick={() => setSlideModeActive(true)}
-            className="flex items-center gap-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white px-6 py-3 rounded-full hover:shadow-lg hover:shadow-purple-500/50 transition-all font-semibold border border-white/20"
-            title="Present report in slide mode (use arrows to navigate)"
-          >
-            <Presentation className="w-4 h-4" />
-            Present
-          </button>
-          
-          <button
-            onClick={handleDownloadPDF}
+        <button
+          onClick={handleDownloadPDF}
             className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-cyan-500 text-white px-6 py-3 rounded-full hover:shadow-lg hover:shadow-pink-500/50 transition-all font-semibold border border-white/20"
-          >
-            <Download className="w-4 h-4" />
-            Download PDF
-          </button>
+        >
+          <Download className="w-4 h-4" />
+          Download PDF
+        </button>
           
           <button
             onClick={handleGenerateSlides}
@@ -394,7 +265,7 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                 Generate Slides
               </>
             )}
-          </button>
+        </button>
         </div>
       </div>
 
@@ -489,31 +360,6 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
         </div>
 
         <div className="p-4 sm:p-6 md:p-8 lg:p-12 bg-gradient-to-br from-slate-900 via-blue-900/50 to-purple-900/50">
-          {/* Executive Summary - NEW */}
-          <AnimatedSection delay={100}>
-            <ExecutiveSummary
-              accountName={data.accountName}
-              totalGMV={data.metrics2025.total_gmv}
-              totalOrders={data.metrics2025.total_orders}
-              derivedMetrics={derived}
-              keyTakeaways={keyTakeaways}
-            />
-          </AnimatedSection>
-          
-          {/* Performance Scorecard - NEW */}
-          <AnimatedSection delay={200}>
-            <PerformanceScorecard
-              derivedMetrics={derived}
-              conversionRate={data.conversionMetrics.conversion_rate}
-              shopPayPct={data.customerInsights.shop_pay_pct}
-            />
-          </AnimatedSection>
-          
-          {/* Narrative Transition to Details */}
-          <AnimatedSection delay={300}>
-            <NarrativeTransition transition={getMetricsTransition(derived)} />
-          </AnimatedSection>
-          
           {/* Badges Section */}
           {/* Elegant Section Divider */}
           <div className="my-16 flex items-center justify-center">
@@ -582,8 +428,8 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
             <div>
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm text-white/70">GMV</span>
-                      <span className={`text-sm font-semibold ${derived.yoyGMVChangePct >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
-                        {formatPercent(derived.yoyGMVChangePct)}
+                      <span className={`text-sm font-semibold ${yoyGMVChange >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
+                        {formatPercent(yoyGMVChange)}
                       </span>
                     </div>
                     <div className="flex items-end gap-2 h-24">
@@ -608,8 +454,8 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
             <div>
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm text-white/70">Orders</span>
-                      <span className={`text-sm font-semibold ${derived.yoyOrdersChangePct >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
-                        {formatPercent(derived.yoyOrdersChangePct)}
+                      <span className={`text-sm font-semibold ${yoyOrdersChange >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
+                        {formatPercent(yoyOrdersChange)}
                       </span>
                     </div>
                     <div className="flex items-end gap-2 h-24">
@@ -634,8 +480,8 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
             <div>
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm text-white/70">AOV</span>
-                      <span className={`text-sm font-semibold ${derived.yoyAOVChangePct >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
-                        {formatPercent(derived.yoyAOVChangePct)}
+                      <span className={`text-sm font-semibold ${yoyAOVChange >= 0 ? 'text-cyan-400' : 'text-red-400'}`}>
+                        {formatPercent(yoyAOVChange)}
                       </span>
             </div>
                     <div className="flex items-end gap-2 h-24">
@@ -663,7 +509,7 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8">
               <div className={`bg-gradient-to-br ${getMetricColors('gmv').bgGradient} rounded-2xl p-8 border-2 ${getMetricColors('gmv').border} backdrop-blur-sm relative overflow-hidden`}>
-                {derived.yoyGMVChangePct > 0 && (
+                {yoyGMVChange > 0 && (
                   <div className="absolute top-4 right-4 text-3xl opacity-20">📈</div>
                 )}
                 <div className="text-sm text-white/70 mb-2 uppercase tracking-wide">Total Sales</div>
@@ -671,8 +517,8 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                 {formatCurrency(data.metrics2025.total_gmv)}
               </div>
               {data.metrics2024.total_gmv > 0 && (
-                  <div className={`text-lg font-semibold ${getGrowthColors(derived.yoyGMVChangePct >= 0).text}`}>
-                    {formatPercent(derived.yoyGMVChangePct)} vs 2024
+                  <div className={`text-lg font-semibold ${getGrowthColors(yoyGMVChange >= 0).text}`}>
+                    {formatPercent(yoyGMVChange)} vs 2024
                 </div>
               )}
                 <div className="text-sm text-white/70 mt-3 italic">
@@ -681,7 +527,7 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
             </div>
 
               <div className={`bg-gradient-to-br ${getMetricColors('orders').bgGradient} rounded-2xl p-8 border-2 ${getMetricColors('orders').border} backdrop-blur-sm relative overflow-hidden`}>
-                {derived.yoyOrdersChangePct > 0 && (
+                {yoyOrdersChange > 0 && (
                   <div className="absolute top-4 right-4 text-3xl opacity-20">📦</div>
                 )}
                 <div className="text-sm text-white/70 mb-2 uppercase tracking-wide">Total Orders</div>
@@ -689,8 +535,8 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                 {data.metrics2025.total_orders.toLocaleString()}
               </div>
               {data.metrics2024.total_orders > 0 && (
-                  <div className={`text-lg font-semibold ${getGrowthColors(derived.yoyOrdersChangePct >= 0).text}`}>
-                    {formatPercent(derived.yoyOrdersChangePct)} vs 2024
+                  <div className={`text-lg font-semibold ${getGrowthColors(yoyOrdersChange >= 0).text}`}>
+                    {formatPercent(yoyOrdersChange)} vs 2024
                 </div>
               )}
                 <div className="text-sm text-white/70 mt-3">
@@ -699,7 +545,7 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
             </div>
 
               <div className={`bg-gradient-to-br ${getMetricColors('aov').bgGradient} rounded-2xl p-8 border-2 ${getMetricColors('aov').border} backdrop-blur-sm relative overflow-hidden`}>
-                {derived.yoyAOVChangePct > 0 && (
+                {yoyAOVChange > 0 && (
                   <div className="absolute top-4 right-4 text-3xl opacity-20">💰</div>
                 )}
                 <div className="text-sm text-white/70 mb-2 uppercase tracking-wide">Average Order Value</div>
@@ -707,8 +553,8 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
                 {formatCurrency(data.metrics2025.aov)}
               </div>
               {data.metrics2024.aov > 0 && (
-                  <div className={`text-lg font-semibold ${getGrowthColors(derived.yoyAOVChangePct >= 0).text}`}>
-                    {formatPercent(derived.yoyAOVChangePct)} vs 2024
+                  <div className={`text-lg font-semibold ${getGrowthColors(yoyAOVChange >= 0).text}`}>
+                    {formatPercent(yoyAOVChange)} vs 2024
                 </div>
               )}
                 <div className="text-sm text-white/70 mt-3">
@@ -721,9 +567,9 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
             {data.metrics2024.total_gmv > 0 && (
               <InsightCard
                 title="Year-over-Year Performance"
-                insight={getGrowthInsight(derived.yoyGMVChangePct, 'GMV')}
+                insight={getGrowthInsight(yoyGMVChange, 'GMV')}
                 icon={TrendingUp}
-                variant={derived.yoyGMVChangePct > 20 ? 'success' : derived.yoyGMVChangePct > 0 ? 'info' : 'warning'}
+                variant={yoyGMVChange > 20 ? 'success' : yoyGMVChange > 0 ? 'info' : 'warning'}
               />
             )}
           </div>
@@ -870,13 +716,6 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
             </AnimatedSection>
           ) : null}
 
-          {/* Narrative Transition to Customer Insights */}
-          <AnimatedSection delay={950}>
-            <NarrativeTransition 
-              transition={getCustomerTransition(derived)} 
-            />
-          </AnimatedSection>
-          
           {/* Your Customer Story */}
           {data.customerInsights.top_customer_spend > 0 && (
             <AnimatedSection delay={1000}>
@@ -1714,16 +1553,6 @@ export default function ReportPreview({ data }: ReportPreviewProps) {
             </AnimatedSection>
           )}
 
-          {/* Narrative Transition to Recommendations */}
-          <AnimatedSection delay={2000}>
-            <NarrativeTransition transition={getRecommendationsTransition(derived)} />
-          </AnimatedSection>
-          
-          {/* Strategic Recommendations - NEW */}
-          <AnimatedSection delay={2100}>
-            <RecommendationsSection recommendations={recommendations} />
-          </AnimatedSection>
-          
           {/* Footer - Shopify Branding */}
           <div className="mt-12 pt-8 border-t-2 border-cyan-500/20 text-center">
             <div className="text-sm text-white/70 mb-2">

@@ -302,3 +302,137 @@ export function calculateGrowthRate(current: number, previous: number): number {
   return ((current - previous) / previous) * 100;
 }
 
+/**
+ * Line Chart Data Interface for trends
+ */
+export interface LineDataPoint {
+  name: string;
+  current: number;
+  previous?: number;
+  label?: string;
+}
+
+/**
+ * Prepare YoY comparison line data
+ */
+export function prepareYoYLineData(
+  metrics2025: { total_gmv: number; total_orders: number; aov: number },
+  metrics2024: { total_gmv: number; total_orders: number; aov: number }
+): LineDataPoint[] {
+  return [
+    {
+      name: 'GMV',
+      current: metrics2025.total_gmv,
+      previous: metrics2024.total_gmv,
+      label: 'Total Sales'
+    },
+    {
+      name: 'Orders',
+      current: metrics2025.total_orders,
+      previous: metrics2024.total_orders,
+      label: 'Total Orders'
+    },
+    {
+      name: 'AOV',
+      current: metrics2025.aov,
+      previous: metrics2024.aov,
+      label: 'Avg Order Value'
+    }
+  ];
+}
+
+// Duplicate interfaces removed - adding back necessary ones that are actually needed
+
+/**
+ * Radar Chart Data Interface (needed by PerformanceScorecard)
+ */
+export interface RadarDataPoint {
+  dimension: string;
+  value: number;
+  fullMark: number;
+}
+
+/**
+ * Prepare performance radar data
+ */
+export function preparePerformanceRadarData(
+  conversionRate: number,
+  repeatRate: number,
+  aov: number,
+  yoyGrowth: number,
+  shopPayPct: number = 0
+): RadarDataPoint[] {
+  // Normalize all metrics to 0-100 scale
+  const normalizeConversion = Math.min((conversionRate / 5) * 100, 100);
+  const normalizeRepeat = Math.min((repeatRate / 50) * 100, 100);
+  const normalizeAOV = Math.min((aov / 200) * 100, 100);
+  const normalizeGrowth = Math.min(Math.max(yoyGrowth, -20) + 20, 100);
+  const normalizeShopPay = Math.min((shopPayPct / 50) * 100, 100);
+  
+  return [
+    { dimension: 'Conversion', value: normalizeConversion, fullMark: 100 },
+    { dimension: 'Loyalty', value: normalizeRepeat, fullMark: 100 },
+    { dimension: 'AOV', value: normalizeAOV, fullMark: 100 },
+    { dimension: 'Growth', value: normalizeGrowth, fullMark: 100 },
+    { dimension: 'Shop Pay', value: normalizeShopPay, fullMark: 100 }
+  ];
+}
+
+/**
+ * Comparison Bar Data Interface
+ */
+export interface ComparisonBarData {
+  name: string;
+  '2025': number;
+  '2024': number;
+}
+
+/**
+ * Prepare YoY comparison bars
+ */
+export function prepareYoYComparisonBars(
+  metrics2025: { total_gmv: number; total_orders: number; aov: number },
+  metrics2024: { total_gmv: number; total_orders: number; aov: number }
+): ComparisonBarData[] {
+  return [
+    {
+      name: 'GMV',
+      '2025': metrics2025.total_gmv,
+      '2024': metrics2024.total_gmv
+    },
+    {
+      name: 'Orders',
+      '2025': metrics2025.total_orders,
+      '2024': metrics2024.total_orders
+    },
+    {
+      name: 'AOV',
+      '2025': metrics2025.aov,
+      '2024': metrics2024.aov
+    }
+  ];
+}
+
+/**
+ * Prepare comparison bar data for metrics
+ */
+export function prepareComparisonBarData(
+  gmv2025: number,
+  gmv2024: number,
+  orders2025: number,
+  orders2024: number
+): ComparisonBarData[] {
+  return [
+    {
+      name: 'GMV',
+      '2025': gmv2025,
+      '2024': gmv2024
+    },
+    {
+      name: 'Orders',
+      '2025': orders2025,
+      '2024': orders2024
+    }
+  ];
+}
+

@@ -151,6 +151,8 @@ export function getInternationalInsight(crossBorderPercentage: number, topMarket
   return `Primarily domestic market—international expansion represents a significant untapped growth opportunity.`;
 }
 
+// OLD DUPLICATE FUNCTIONS REMOVED - keeping only updated versions below
+
 // Helper function for currency formatting
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('en-US', {
@@ -159,5 +161,238 @@ function formatCurrency(amount: number): string {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount);
+}
+
+/**
+ * Industry Benchmarks for comparison
+ */
+export const INDUSTRY_BENCHMARKS = {
+  averageConversionRate: 2.5,
+  averageAOV: 75,
+  averageRepeatRate: 28,
+  averageMobileSessionPct: 65,
+  averageCartAbandonmentRate: 70,
+  averageShopPayAdoption: 32,
+  topTierConversionRate: 3.5,
+  topTierRepeatRate: 40,
+} as const;
+
+/**
+ * Generate product mix insight
+ */
+export function getProductMixInsight(topProductShare: number, productCount: number): string {
+  if (topProductShare > 50) {
+    return `Your top product drives ${topProductShare.toFixed(1)}% of sales—consider diversifying to reduce dependency on a single SKU and protect against inventory or trend risks.`;
+  }
+  if (topProductShare > 30) {
+    return `Strong hero product at ${topProductShare.toFixed(1)}% of sales with healthy catalog depth across ${productCount} top performers. This balance supports sustainable growth.`;
+  }
+  return `Balanced product portfolio with no single SKU dominating (top product: ${topProductShare.toFixed(1)}%)—indicates healthy catalog diversity and reduced concentration risk.`;
+}
+
+/**
+ * Generate discount strategy insight
+ */
+export function getDiscountStrategyInsight(discountedSalesPct: number, totalDiscountedSales: number): string {
+  if (discountedSalesPct > 60) {
+    return `${discountedSalesPct.toFixed(1)}% of sales came from discounted products—while effective for conversion, evaluate impact on brand perception and margin health.`;
+  }
+  if (discountedSalesPct > 40) {
+    return `Balanced discount strategy with ${discountedSalesPct.toFixed(1)}% of GMV from promotions (${formatCurrency(totalDiscountedSales)}). This maintains healthy mix of full-price and promotional sales.`;
+  }
+  if (discountedSalesPct > 20) {
+    return `Conservative discount approach with ${discountedSalesPct.toFixed(1)}% promotional sales—strong brand value perception with opportunity to test strategic promotions for volume growth.`;
+  }
+  return `Minimal discounting strategy (${discountedSalesPct.toFixed(1)}%)—indicates premium positioning or opportunity to test promotions for customer acquisition.`;
+}
+
+/**
+ * Generate checkout optimization insight
+ */
+export function getCheckoutOptimizationInsight(
+  addToCartRate: number,
+  cartToCheckoutRate: number,
+  checkoutCompletionRate: number
+): string {
+  if (addToCartRate < 20) {
+    return `Only ${addToCartRate.toFixed(1)}% of sessions add to cart—primary opportunity is driving product engagement and purchase intent through improved merchandising and social proof.`;
+  }
+  if (cartToCheckoutRate < 50) {
+    return `${cartToCheckoutRate.toFixed(1)}% cart-to-checkout rate indicates significant drop-off—optimize with trust signals, shipping transparency, and Shop Pay for faster checkout.`;
+  }
+  if (checkoutCompletionRate < 70) {
+    return `${checkoutCompletionRate.toFixed(1)}% checkout completion—reduce friction with Shop Pay (converts 1.91x better), clear shipping costs, and mobile-optimized forms.`;
+  }
+  return `Strong checkout flow with ${checkoutCompletionRate.toFixed(1)}% completion rate—continue optimizing with address autofill and payment method expansion.`;
+}
+
+/**
+ * Generate seasonality insight
+ */
+export function getSeasonalityInsight(peakDay: string, peakHour: string | null): string {
+  if (peakHour) {
+    return `Peak traffic occurred on ${peakDay} at ${peakHour}—use these insights to time future promotions, email campaigns, and ensure inventory availability during high-intent periods.`;
+  }
+  return `Highest performance on ${peakDay}—plan inventory, staffing, and marketing campaigns around these peak periods for maximum impact.`;
+}
+
+/**
+ * Benchmark comparison insight
+ */
+export function getBenchmarkInsight(
+  metricValue: number,
+  benchmarkValue: number,
+  metricName: string,
+  higherIsBetter: boolean = true
+): string {
+  const difference = ((metricValue - benchmarkValue) / benchmarkValue) * 100;
+  const absDiff = Math.abs(difference);
+  
+  if (higherIsBetter) {
+    if (difference > 20) {
+      return `Your ${metricValue.toFixed(1)}% ${metricName} exceeds the ${benchmarkValue}% industry average by ${absDiff.toFixed(0)}%—placing you in the top performer category.`;
+    }
+    if (difference > 0) {
+      return `Your ${metricValue.toFixed(1)}% ${metricName} is above the ${benchmarkValue}% industry benchmark—continue optimizing to reach top-tier performance.`;
+    }
+    return `Your ${metricValue.toFixed(1)}% ${metricName} is below the ${benchmarkValue}% industry standard—this represents a high-priority optimization opportunity.`;
+  } else {
+    if (difference < -20) {
+      return `Your ${metricValue.toFixed(1)}% ${metricName} is ${absDiff.toFixed(0)}% better than the ${benchmarkValue}% industry average.`;
+    }
+    if (difference < 0) {
+      return `Your ${metricValue.toFixed(1)}% ${metricName} outperforms the ${benchmarkValue}% benchmark.`;
+    }
+    return `Your ${metricValue.toFixed(1)}% ${metricName} exceeds the ${benchmarkValue}% industry standard—opportunity to optimize.`;
+  }
+}
+
+/**
+ * Recommendation System
+ */
+export interface Recommendation {
+  priority: 'high' | 'medium' | 'low';
+  category: 'growth' | 'optimization' | 'risk';
+  title: string;
+  description: string;
+  potentialImpact: string;
+  shopifyProduct?: string;
+}
+
+/**
+ * Generate strategic recommendations based on data
+ */
+export function generateRecommendations(
+  conversionRate: number,
+  repeatRate: number,
+  mobileSessionPct: number,
+  shopPayPct: number | undefined,
+  crossBorderPct: number,
+  discountedSalesPct: number,
+  retailGMV: number,
+  yoyGrowth: number
+): Recommendation[] {
+  const recommendations: Recommendation[] = [];
+  
+  // Conversion optimization
+  if (conversionRate < INDUSTRY_BENCHMARKS.averageConversionRate) {
+    recommendations.push({
+      priority: 'high',
+      category: 'optimization',
+      title: 'Optimize Conversion Rate',
+      description: `Your ${conversionRate.toFixed(1)}% CR is below industry average. Implement Shop Pay for 1.91x better conversion, add trust signals, optimize product pages, and streamline checkout.`,
+      potentialImpact: `Reaching ${INDUSTRY_BENCHMARKS.averageConversionRate}% CR could add significant revenue`,
+      shopifyProduct: 'Shop Pay'
+    });
+  }
+  
+  // Shop Pay adoption
+  if (!shopPayPct || shopPayPct < INDUSTRY_BENCHMARKS.averageShopPayAdoption) {
+    recommendations.push({
+      priority: 'high',
+      category: 'growth',
+      title: 'Accelerate Shop Pay Adoption',
+      description: `Shop Pay adoption is ${shopPayPct ? 'at ' + shopPayPct.toFixed(1) + '%' : 'low'}. Increase prominence at checkout—Shop Pay converts 1.91x better than guest checkout.`,
+      potentialImpact: 'Could improve conversion rate by up to 50%',
+      shopifyProduct: 'Shop Pay'
+    });
+  }
+  
+  // Customer retention
+  if (repeatRate < INDUSTRY_BENCHMARKS.averageRepeatRate) {
+    recommendations.push({
+      priority: 'high',
+      category: 'growth',
+      title: 'Build Customer Loyalty Program',
+      description: `${repeatRate.toFixed(1)}% repeat rate is below benchmark. Implement post-purchase email flows, loyalty rewards, and personalized recommendations to increase LTV.`,
+      potentialImpact: 'Increasing repeat rate by 10% can double customer LTV',
+      shopifyProduct: 'Shopify Email + Flow'
+    });
+  }
+  
+  // Mobile optimization
+  if (mobileSessionPct > 60 && conversionRate < 2.5) {
+    recommendations.push({
+      priority: 'high',
+      category: 'optimization',
+      title: 'Mobile Experience Optimization',
+      description: `${mobileSessionPct.toFixed(1)}% of traffic is mobile. Prioritize mobile-first design, faster load times, thumb-friendly CTAs, and Shop Pay for seamless mobile checkout.`,
+      potentialImpact: 'Mobile CR improvements directly impact majority of traffic',
+      shopifyProduct: 'Shop Pay + Mobile Optimization'
+    });
+  }
+  
+  // International expansion
+  if (crossBorderPct > 5 && crossBorderPct < 30) {
+    recommendations.push({
+      priority: 'medium',
+      category: 'growth',
+      title: 'Scale International Sales',
+      description: `${crossBorderPct.toFixed(1)}% cross-border business shows global demand. Consider Shopify Markets for localized pricing, duties/taxes, and local payment methods.`,
+      potentialImpact: 'Markets merchants see 23% increase in international conversion',
+      shopifyProduct: 'Shopify Markets'
+    });
+  }
+  
+  // Retail expansion
+  if (retailGMV > 0 && retailGMV < 1000000) {
+    recommendations.push({
+      priority: 'medium',
+      category: 'growth',
+      title: 'Expand Retail Presence',
+      description: `Growing retail footprint (${formatCurrency(retailGMV)}) shows omnichannel opportunity. Scale with POS Pro for unified inventory, customer profiles, and reporting.`,
+      potentialImpact: 'Omnichannel customers spend 3x more on average',
+      shopifyProduct: 'POS Pro'
+    });
+  }
+  
+  // Discount strategy
+  if (discountedSalesPct > 60) {
+    recommendations.push({
+      priority: 'medium',
+      category: 'risk',
+      title: 'Optimize Discount Strategy',
+      description: `${discountedSalesPct.toFixed(1)}% promotional sales may impact margins and brand perception. Test tiered discounts, bundle offers, and gift-with-purchase to maintain value perception.`,
+      potentialImpact: 'Reducing discount dependency by 10% preserves margin',
+    });
+  }
+  
+  // Growth momentum
+  if (yoyGrowth > 30) {
+    recommendations.push({
+      priority: 'high',
+      category: 'growth',
+      title: 'Capitalize on Growth Momentum',
+      description: `${yoyGrowth.toFixed(1)}% YoY growth is exceptional. Scale with Shopify Plus for advanced automation, B2B capabilities, and enterprise features to support continued expansion.`,
+      potentialImpact: 'Plus merchants grow 2x faster on average',
+      shopifyProduct: 'Shopify Plus'
+    });
+  }
+  
+  // Sort by priority
+  const priorityOrder = { high: 0, medium: 1, low: 2 };
+  recommendations.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+  
+  return recommendations.slice(0, 8); // Top 8 recommendations
 }
 
