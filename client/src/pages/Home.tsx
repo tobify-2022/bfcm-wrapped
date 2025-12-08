@@ -103,20 +103,20 @@ function Home() {
     <div className="min-h-screen bg-gradient-to-br from-shopify-green/5 to-shopify-blue/5">
       <div className="container mx-auto px-4 py-8">
         <header className="mb-8 text-center relative">
-          <div className="flex items-center justify-center gap-4 mb-2">
+          <div className="flex items-center justify-center gap-4 mb-3">
             <img 
-              src="/assets/bag-3d.webp" 
-              alt="Shopify" 
-              className="w-16 h-16 object-contain drop-shadow-lg" 
+              src="/assets/commerce/7.png" 
+              alt="BFCM Wrapped" 
+              className="w-20 h-20 object-contain drop-shadow-2xl animate-float" 
             />
-            <h1 className="text-4xl font-bold text-shopify-dark-green">
+            <h1 className="text-5xl font-bold text-white drop-shadow-2xl" style={{ textShadow: '0 0 30px rgba(236, 72, 153, 0.6), 0 0 60px rgba(6, 182, 212, 0.4)' }}>
               🎁 BFCM Wrapped
             </h1>
           </div>
-          <p className="text-muted-foreground">
+          <p className="text-lg text-white/80 drop-shadow-md max-w-2xl mx-auto">
             Generate personalized BFCM performance reports for your merchants
           </p>
-          <div className="text-xs text-muted-foreground mt-2">v0.1.0</div>
+          <div className="text-xs text-white/50 mt-2">v0.1.0</div>
         </header>
 
         {!isAuthenticated ? (

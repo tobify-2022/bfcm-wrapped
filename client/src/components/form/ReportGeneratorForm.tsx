@@ -530,20 +530,9 @@ export default function ReportGeneratorForm({ onGenerate, isGenerating }: Report
 
   return (
     <div className="max-w-2xl mx-auto bg-card rounded-lg shadow-lg p-6" onKeyDown={handleKeyDown}>
-      {/* Premium Page Header */}
-      <div className="mb-8 text-center">
-        <div className="flex items-center justify-center gap-3 mb-2">
-          <img 
-            src="/assets/commerce/7.png" 
-            alt="Wrapped" 
-            className="w-12 h-12 object-contain drop-shadow-lg"
-          />
-          <h2 className="text-3xl font-bold text-white drop-shadow-lg" style={{ textShadow: '0 0 20px rgba(6, 182, 212, 0.6), 0 0 40px rgba(236, 72, 153, 0.4)' }}>
-            🎁 BFCM Wrapped
+      <h2 className="text-2xl font-semibold mb-6 text-white">
+        Generate BFCM Report
       </h2>
-        </div>
-        <p className="text-sm text-white/70">Generate your BFCM performance report</p>
-      </div>
 
       <div className="space-y-4">
         {/* Input Mode Toggle */}
